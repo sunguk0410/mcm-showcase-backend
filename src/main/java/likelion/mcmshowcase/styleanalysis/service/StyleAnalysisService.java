@@ -147,8 +147,7 @@ public class StyleAnalysisService {
                 product.getCategory().getCode(),
                 product.getColor(),
                 product.getMaterial(),
-                product.getSilhouette(),
-                product.getStyle()
+                product.getSilhouette()
         );
     }
 

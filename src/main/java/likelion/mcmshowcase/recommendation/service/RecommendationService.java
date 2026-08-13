@@ -112,8 +112,7 @@ public class RecommendationService {
                 product.getCategory().getCode(),
                 product.getColor(),
                 product.getMaterial(),
-                product.getSilhouette(),
-                product.getStyle()
+                product.getSilhouette()
         );
     }
 

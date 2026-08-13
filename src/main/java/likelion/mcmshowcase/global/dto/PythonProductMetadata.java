@@ -4,7 +4,6 @@ public record PythonProductMetadata(
         String categoryCode,
         String color,
         String material,
-        String silhouette,
-        String style
+        String silhouette
 ) {
 }

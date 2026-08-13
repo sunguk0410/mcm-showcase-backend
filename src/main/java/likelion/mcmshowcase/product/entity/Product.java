@@ -29,8 +29,6 @@ public class Product {
     private String material;
     @Column(name = "silhouette", length = 100)
     private String silhouette;
-    @Column(name = "style", length = 100)
-    private String style;
     @Column(name = "image_url", length = 1000)
     private String imageUrl;
     @Column(name = "product_url", length = 1000)
