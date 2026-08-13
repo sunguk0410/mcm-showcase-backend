@@ -8,7 +8,7 @@ services:
       - "8080:8080"
 
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/mcm?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      DB_URL: jdbc:mysql://mysql:3306/mcm_showcase?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
 
@@ -26,7 +26,7 @@ services:
 
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: mcm
+      MYSQL_DATABASE: mcm_showcase
 
     volumes:
       - mysql-data:/var/lib/mysql
