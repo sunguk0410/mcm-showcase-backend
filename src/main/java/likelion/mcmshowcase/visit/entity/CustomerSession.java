@@ -42,4 +42,12 @@ public class CustomerSession {
         this.member = member;
         this.identifiedAt = identifiedAt;
     }
+
+    public void end(LocalDateTime endedAt) {
+        if (endedAt.isBefore(this.startedAt)) {
+            throw new IllegalArgumentException("endedAt cannot be earlier than startedAt");
+        }
+        this.status = CustomerSessionStatus.COMPLETED;
+        this.endedAt = endedAt;
+    }
 }

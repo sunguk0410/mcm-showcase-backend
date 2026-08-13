@@ -3,6 +3,7 @@ package likelion.mcmshowcase.visit.service;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.visit.dto.CustomerSessionCreateResponse;
+import likelion.mcmshowcase.visit.dto.CustomerSessionEndResponse;
 import likelion.mcmshowcase.visit.dto.CustomerSessionMemberMatchRequest;
 import likelion.mcmshowcase.visit.dto.CustomerSessionMemberMatchResponse;
 import likelion.mcmshowcase.visit.entity.CustomerSession;
@@ -66,6 +67,35 @@ public class CustomerSessionService {
                 member.getId(),
                 customerSession.getIdentifiedAt(),
                 customerSession.getStatus()
+        );
+    }
+
+    @Transactional
+    public CustomerSessionEndResponse end(Long customerSessionId) {
+        CustomerSession customerSession = customerSessionRepository.findById(customerSessionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "CustomerSession not found: " + customerSessionId));
+
+        if (customerSession.getEndedAt() != null
+                || customerSession.getStatus() == CustomerSessionStatus.COMPLETED) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "CustomerSession is already ended");
+        }
+
+        LocalDateTime endedAt = LocalDateTime.now();
+        if (endedAt.isBefore(customerSession.getStartedAt())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "CustomerSession cannot end before its startedAt");
+        }
+
+        customerSession.end(endedAt);
+        CustomerSession savedCustomerSession = customerSessionRepository.save(customerSession);
+
+        return new CustomerSessionEndResponse(
+                savedCustomerSession.getId(),
+                savedCustomerSession.getStatus(),
+                savedCustomerSession.getStartedAt(),
+                savedCustomerSession.getEndedAt()
         );
     }
 }

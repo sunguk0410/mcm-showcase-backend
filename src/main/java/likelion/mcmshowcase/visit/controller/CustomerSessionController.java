@@ -2,6 +2,7 @@ package likelion.mcmshowcase.visit.controller;
 
 import jakarta.validation.Valid;
 import likelion.mcmshowcase.visit.dto.CustomerSessionCreateResponse;
+import likelion.mcmshowcase.visit.dto.CustomerSessionEndResponse;
 import likelion.mcmshowcase.visit.dto.CustomerSessionMemberMatchRequest;
 import likelion.mcmshowcase.visit.dto.CustomerSessionMemberMatchResponse;
 import likelion.mcmshowcase.visit.service.CustomerSessionService;
@@ -36,5 +37,12 @@ public class CustomerSessionController {
         CustomerSessionMemberMatchResponse response =
                 customerSessionService.matchMember(customerSessionId, request);
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{customerSessionId}/end")
+    public ResponseEntity<CustomerSessionEndResponse> end(
+            @PathVariable Long customerSessionId
+    ) {
+        return ResponseEntity.ok(customerSessionService.end(customerSessionId));
     }
 }
