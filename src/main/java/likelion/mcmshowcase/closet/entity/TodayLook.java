@@ -14,10 +14,13 @@ public class TodayLook {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "style_profile_id", nullable = false)
     private StyleProfile styleProfile;
-    @Column(name = "name", length = 255)
-    private String name;
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    public static TodayLook create(StyleProfile styleProfile, LocalDateTime createdAt) {
+        TodayLook todayLook = new TodayLook();
+        todayLook.styleProfile = styleProfile;
+        todayLook.createdAt = createdAt;
+        return todayLook;
+    }
 }

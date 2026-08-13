@@ -19,4 +19,16 @@ public class StyleProfile {
     private String styleIdentityTitle;
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    public static StyleProfile create(
+            ArSession arSession,
+            String styleIdentityTitle,
+            LocalDateTime createdAt
+    ) {
+        StyleProfile styleProfile = new StyleProfile();
+        styleProfile.arSession = arSession;
+        styleProfile.styleIdentityTitle = styleIdentityTitle;
+        styleProfile.createdAt = createdAt;
+        return styleProfile;
+    }
 }

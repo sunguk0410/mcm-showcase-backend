@@ -18,8 +18,18 @@ public class Avatar {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "avatar_preset_id", nullable = false)
     private AvatarPreset avatarPreset;
-    @Column(name = "preview_image_url", length = 1000)
-    private String previewImageUrl;
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    public static Avatar create(
+            StyleProfile styleProfile,
+            AvatarPreset avatarPreset,
+            LocalDateTime createdAt
+    ) {
+        Avatar avatar = new Avatar();
+        avatar.styleProfile = styleProfile;
+        avatar.avatarPreset = avatarPreset;
+        avatar.createdAt = createdAt;
+        return avatar;
+    }
 }

@@ -19,4 +19,16 @@ public class TodayLookItem {
     private Product product;
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
+
+    public static TodayLookItem create(
+            TodayLook todayLook,
+            Product product,
+            int displayOrder
+    ) {
+        TodayLookItem todayLookItem = new TodayLookItem();
+        todayLookItem.todayLook = todayLook;
+        todayLookItem.product = product;
+        todayLookItem.displayOrder = displayOrder;
+        return todayLookItem;
+    }
 }
