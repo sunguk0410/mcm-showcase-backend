@@ -14,6 +14,10 @@ public class Member {
     private Long id;
     @Column(name = "external_member_id", length = 100, nullable = false, unique = true)
     private String externalMemberId;
+    @Column(name = "login_id", length = 100, nullable = false, unique = true)
+    private String loginId;
+    @Column(name = "password", length = 64, nullable = false)
+    private String password;
     @Column(name = "name", length = 100)
     private String name;
     @Enumerated(EnumType.STRING)
