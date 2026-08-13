@@ -33,6 +33,8 @@ public class Product {
     private String style;
     @Column(name = "image_url", length = 1000)
     private String imageUrl;
+    @Column(name = "product_url", length = 1000)
+    private String productUrl;
     @Column(name = "ar_asset_url", length = 1000)
     private String arAssetUrl;
     @Column(name = "created_at", nullable = false)

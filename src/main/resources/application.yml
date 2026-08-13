@@ -13,3 +13,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+recommendation:
+  python:
+    base-url: ${RECOMMENDATION_PYTHON_BASE_URL:http://localhost:8000}
