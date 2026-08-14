@@ -10,33 +10,43 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     private Long id;
+
     @Column(name = "product_code", length = 100, nullable = false, unique = true)
     private String productCode;
+
     @Column(name = "name", length = 255, nullable = false)
     private String name;
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+
+    @Column(name = "gender", length = 20, nullable = false)
+    private String gender;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
     @Column(name = "price", precision = 12, scale = 2)
     private BigDecimal price;
+
     @Column(name = "color", length = 100)
     private String color;
-    @Column(name = "material", length = 100)
-    private String material;
-    @Column(name = "silhouette", length = 100)
-    private String silhouette;
+
+    @Column(name = "sub_category", length = 100)
+    private String subCategory;
+
+    @Column(name = "zone", length = 30, nullable = false)
+    private String zone;
+
     @Column(name = "image_url", length = 1000)
     private String imageUrl;
+
     @Column(name = "product_url", length = 1000)
     private String productUrl;
-    @Column(name = "ar_asset_url", length = 1000)
-    private String arAssetUrl;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

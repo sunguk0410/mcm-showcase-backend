@@ -145,9 +145,10 @@ public class StyleAnalysisService {
         }
         return new PythonProductMetadata(
                 product.getCategory().getCode(),
+                product.getSubCategory(),
+                product.getZone(),
                 product.getColor(),
-                product.getMaterial(),
-                product.getSilhouette()
+                product.getGender()
         );
     }
 
