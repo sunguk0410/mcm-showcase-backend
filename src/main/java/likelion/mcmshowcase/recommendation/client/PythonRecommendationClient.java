@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.recommendation.client;
 
+import likelion.mcmshowcase.recommendation.dto.PythonInitialPreferenceRequest;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationRequest;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +58,22 @@ public class PythonRecommendationClient {
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Recommendation server unavailable"
             );
+        } catch (RestClientResponseException exception) {
+            throw unavailable();
+        } catch (RestClientException exception) {
+            throw unavailable();
+        }
+    }
+
+    public void initializePreferences(PythonInitialPreferenceRequest request) {
+        try {
+            restClient.post()
+                    .uri("/recommend")
+                    .body(request)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpServerErrorException | ResourceAccessException exception) {
+            throw unavailable();
         } catch (RestClientResponseException exception) {
             throw unavailable();
         } catch (RestClientException exception) {
