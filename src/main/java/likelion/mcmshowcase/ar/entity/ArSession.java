@@ -49,4 +49,11 @@ public class ArSession {
         }
         this.endedAt = endedAt;
     }
+
+    public void mapCustomerSession(CustomerSession customerSession) {
+        if (this.customerSession != null && !this.customerSession.getId().equals(customerSession.getId())) {
+            throw new IllegalStateException("ArSession is already mapped to another CustomerSession");
+        }
+        this.customerSession = customerSession;
+    }
 }

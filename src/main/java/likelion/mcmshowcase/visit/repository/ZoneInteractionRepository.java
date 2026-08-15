@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ZoneInteractionRepository extends JpaRepository<ZoneInteraction, Long> {
     List<ZoneInteraction> findByCustomerSessionOrderByEnteredAtAsc(CustomerSession customerSession);
+
+    boolean existsByCustomerSession(CustomerSession customerSession);
 }
