@@ -99,8 +99,8 @@ public class MyClosetService {
     private MyClosetProductResponse toProductResponse(Product product) {
         return new MyClosetProductResponse(
                 product.getId(),
-                product.getProductCode(),
                 product.getName(),
+                product.getPrice(),
                 product.getImageUrl(),
                 product.getProductUrl()
         );
