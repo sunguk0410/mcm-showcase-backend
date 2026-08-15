@@ -2,6 +2,7 @@ package likelion.mcmshowcase.closet.service;
 
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
+import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.closet.dto.*;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
@@ -30,6 +31,27 @@ public class MyClosetService {
     private final TodayLookRepository todayLookRepository;
     private final TodayLookItemRepository todayLookItemRepository;
     private final ArInteractionRepository arInteractionRepository;
+    private final ArSessionRepository arSessionRepository;
+
+    @Transactional
+    public MyClosetMemberLinkResponse linkMember(
+            Long styleProfileId,
+            MyClosetMemberLinkRequest request
+    ) {
+        StyleProfile styleProfile = styleProfileRepository.findById(styleProfileId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "StyleProfile not found: " + styleProfileId));
+        Member member = findMember(request.memberId());
+        if (styleProfile.getArSession().getMember() != null
+                && !styleProfile.getArSession().getMember().getId().equals(member.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "ArSession is already mapped to another Member");
+        }
+
+        styleProfile.getArSession().mapMember(member);
+        arSessionRepository.save(styleProfile.getArSession());
+        return new MyClosetMemberLinkResponse(styleProfileId, member.getId());
+    }
 
     @Transactional(readOnly = true)
     public MyClosetListResponse getMyCloset(Long memberId) {
