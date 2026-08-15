@@ -68,7 +68,7 @@ public class PythonRecommendationClient {
     public void initializePreferences(PythonInitialPreferenceRequest request) {
         try {
             restClient.post()
-                    .uri("/recommend")
+                    .uri("/preferences/initialize")
                     .body(request)
                     .retrieve()
                     .toBodilessEntity();

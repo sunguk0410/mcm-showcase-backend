@@ -43,9 +43,17 @@ public class RecommendationService {
     @Transactional(readOnly = true)
     public void initializePreferences(Long arSessionId) {
         ArSession arSession = findArSession(arSessionId);
+        List<PythonInitialPreferenceRequest.ZoneInteraction> zoneInteractions =
+                getZoneInteractions(arSession);
+        if (zoneInteractions.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "ZoneInteraction not found for ArSession: " + arSessionId
+            );
+        }
 
         pythonRecommendationClient.initializePreferences(
-                new PythonInitialPreferenceRequest(getZoneInteractions(arSession))
+                new PythonInitialPreferenceRequest(arSessionId, zoneInteractions)
         );
     }
 
@@ -72,7 +80,7 @@ public class RecommendationService {
 
         PythonRecommendationResponse pythonResponse = pythonRecommendationClient.recommend(
                 new PythonRecommendationRequest(
-                        getZoneInteractions(arSession),
+                        arSessionId,
                         interactions,
                         categoryCode,
                         DEFAULT_TOP_K
@@ -117,6 +125,13 @@ public class RecommendationService {
     private List<PythonInitialPreferenceRequest.ZoneInteraction> getZoneInteractions(
             ArSession arSession
     ) {
+        if (arSession.getCustomerSession() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "CustomerSession is not mapped to ArSession: " + arSession.getId()
+            );
+        }
+
         Map<ZoneCategoryKey, Long> dwellSecondsByZoneCategory = new LinkedHashMap<>();
         zoneInteractionRepository
                 .findByCustomerSessionOrderByEnteredAtAsc(arSession.getCustomerSession())
