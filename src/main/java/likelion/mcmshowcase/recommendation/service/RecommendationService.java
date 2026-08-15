@@ -83,8 +83,10 @@ public class RecommendationService {
                 .toList();
 
         LocalDateTime now = LocalDateTime.now();
+        String avatarImageUrl = resolveAvatarImageUrl(arSession);
         StyleProfile styleProfile = styleProfileRepository.save(
-                StyleProfile.create(arSession, pythonResponse.styleIdentityTitle(), now)
+                StyleProfile.create(
+                        arSession, pythonResponse.styleIdentityTitle(), avatarImageUrl, now)
         );
         TodayLook todayLook = todayLookRepository.save(TodayLook.create(styleProfile, now));
         List<TodayLookItem> items = java.util.stream.IntStream.range(0, orderedProducts.size())
@@ -237,6 +239,19 @@ public class RecommendationService {
                 product.getProductUrl(),
                 score
         );
+    }
+
+    private String resolveAvatarImageUrl(ArSession arSession) {
+        if (arSession.getGender() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Gender is not set for ArSession: " + arSession.getId()
+            );
+        }
+        return switch (arSession.getGender()) {
+            case MALE -> "/images/avatars/male.png";
+            case FEMALE -> "/images/avatars/female.png";
+        };
     }
 
     private String toZoneCode(ZoneInteraction interaction) {

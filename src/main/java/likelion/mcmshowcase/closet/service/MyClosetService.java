@@ -82,6 +82,7 @@ public class MyClosetService {
         return new MyClosetDetailResponse(
                 styleProfile.getId(),
                 styleProfile.getStyleIdentityTitle(),
+                styleProfile.getAvatarImageUrl(),
                 new MyClosetTodayLookResponse(todayLookProducts),
                 fittingHistory
         );
