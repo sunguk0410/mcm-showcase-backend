@@ -55,7 +55,16 @@ public class RecommendationService {
 
     @Transactional
     public AvatarLookResponse createAvatarLook(Long arSessionId) {
-        ArSession arSession = findArSession(arSessionId);
+        ArSession arSession = arSessionRepository.findByIdForUpdate(arSessionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+        StyleProfile existingStyleProfile = styleProfileRepository
+                .findTopByArSessionOrderByCreatedAtDesc(arSession)
+                .orElse(null);
+        if (existingStyleProfile != null) {
+            return toAvatarLookResponse(existingStyleProfile);
+        }
+
         PythonAvatarLookResponse pythonResponse = pythonRecommendationClient.createAvatarLook(
                 new PythonAvatarLookRequest(arSessionId)
         );
@@ -69,6 +78,12 @@ public class RecommendationService {
         List<Long> productIds = pythonResponse.products().stream()
                 .map(PythonAvatarLookResponse.Product::productId)
                 .toList();
+        if (productIds.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Recommendation server returned an empty Avatar Look"
+            );
+        }
         Map<Long, Product> productsById = productRepository.findAllById(productIds).stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
         List<Product> orderedProducts = productIds.stream()
@@ -95,20 +110,33 @@ public class RecommendationService {
                 .toList();
         todayLookItemRepository.saveAll(items);
 
-        List<AvatarLookResponse.Product> products = orderedProducts.stream()
-                .map(product -> new AvatarLookResponse.Product(
-                        product.getId(),
-                        product.getProductCode(),
-                        product.getName(),
-                        product.getImageUrl(),
-                        product.getProductUrl()
-                ))
-                .toList();
         return new AvatarLookResponse(
                 arSessionId,
                 styleProfile.getId(),
                 styleProfile.getStyleIdentityTitle(),
-                new AvatarLookResponse.TodayLook(products)
+                orderedProducts.stream()
+                        .map(product -> new AvatarLookResponse.Product(product.getId()))
+                        .toList()
+        );
+    }
+
+    private AvatarLookResponse toAvatarLookResponse(StyleProfile styleProfile) {
+        TodayLook todayLook = todayLookRepository
+                .findTopByStyleProfileOrderByCreatedAtDesc(styleProfile)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "TodayLook not found for existing StyleProfile: " + styleProfile.getId()
+                ));
+        List<AvatarLookResponse.Product> products = todayLookItemRepository
+                .findByTodayLookOrderByDisplayOrderAsc(todayLook)
+                .stream()
+                .map(item -> new AvatarLookResponse.Product(item.getProduct().getId()))
+                .toList();
+        return new AvatarLookResponse(
+                styleProfile.getArSession().getId(),
+                styleProfile.getId(),
+                styleProfile.getStyleIdentityTitle(),
+                products
         );
     }
 

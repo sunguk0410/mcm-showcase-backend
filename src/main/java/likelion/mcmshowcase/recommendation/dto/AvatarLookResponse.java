@@ -6,17 +6,10 @@ public record AvatarLookResponse(
         Long arSessionId,
         Long styleProfileId,
         String styleIdentityTitle,
-        TodayLook todayLook
+        List<Product> products
 ) {
-    public record TodayLook(List<Product> products) {
-    }
-
     public record Product(
-            Long productId,
-            String productCode,
-            String name,
-            String imageUrl,
-            String productUrl
+            Long productId
     ) {
     }
 }
