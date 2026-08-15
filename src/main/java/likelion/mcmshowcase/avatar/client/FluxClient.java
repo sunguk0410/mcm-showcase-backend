@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +31,7 @@ public class FluxClient {
             """;
 
     private final RestClient restClient;
+    private final RestClient imageDownloadClient;
     private final String apiKey;
     private final String modelPath;
     private final Duration pollingInterval;
@@ -45,12 +47,14 @@ public class FluxClient {
             @Value("${flux.polling-interval:500ms}") Duration pollingInterval,
             @Value("${flux.max-polling-duration:2m}") Duration maxPollingDuration
     ) {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(connectTimeout);
-        requestFactory.setReadTimeout(readTimeout);
+        SimpleClientHttpRequestFactory requestFactory = createRequestFactory(
+                connectTimeout, readTimeout);
         this.restClient = restClientBuilder
                 .baseUrl(baseUrl)
                 .requestFactory(requestFactory)
+                .build();
+        this.imageDownloadClient = RestClient.builder()
+                .requestFactory(createRequestFactory(connectTimeout, readTimeout))
                 .build();
         this.apiKey = apiKey;
         this.modelPath = modelPath;
@@ -99,8 +103,8 @@ public class FluxClient {
 
     public byte[] downloadGeneratedImage(String imageUrl) {
         try {
-            byte[] image = restClient.get()
-                    .uri(imageUrl)
+            byte[] image = imageDownloadClient.get()
+                    .uri(URI.create(imageUrl))
                     .retrieve()
                     .body(byte[].class);
             if (image == null || image.length == 0) {
@@ -131,7 +135,7 @@ public class FluxClient {
             FluxPollResponse response;
             try {
                 response = restClient.get()
-                        .uri(pollingUrl)
+                        .uri(URI.create(pollingUrl))
                         .header("x-key", apiKey)
                         .retrieve()
                         .body(FluxPollResponse.class);
@@ -180,6 +184,16 @@ public class FluxClient {
             body.put(fieldName, imageUrls.get(index));
         }
         return body;
+    }
+
+    private static SimpleClientHttpRequestFactory createRequestFactory(
+            Duration connectTimeout,
+            Duration readTimeout
+    ) {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(connectTimeout);
+        requestFactory.setReadTimeout(readTimeout);
+        return requestFactory;
     }
 
     private void waitBeforePolling() {
