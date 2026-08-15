@@ -35,7 +35,7 @@ public class MyClosetService {
     public MyClosetListResponse getMyCloset(Long memberId) {
         Member member = findMember(memberId);
         List<MyClosetListItemResponse> items = styleProfileRepository
-                .findByArSessionCustomerSessionMemberOrderByCreatedAtDesc(member)
+                .findByArSessionMemberOrderByCreatedAtDesc(member)
                 .stream()
                 .map(styleProfile -> new MyClosetListItemResponse(
                         styleProfile.getId(),

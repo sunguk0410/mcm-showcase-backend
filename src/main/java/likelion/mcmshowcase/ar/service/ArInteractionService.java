@@ -75,7 +75,7 @@ public class ArInteractionService {
             ArInteractionType interactionType,
             LocalDateTime createdAt
     ) {
-        Member member = arSession.getCustomerSession().getMember();
+        Member member = arSession.getMember();
         if (member == null) {
             return;
         }

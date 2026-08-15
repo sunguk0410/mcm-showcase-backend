@@ -2,6 +2,7 @@ package likelion.mcmshowcase.ar.entity;
 
 import jakarta.persistence.*;
 import likelion.mcmshowcase.global.enums.Gender;
+import likelion.mcmshowcase.member.entity.Member;
 import lombok.*;
 import likelion.mcmshowcase.visit.entity.CustomerSession;
 import java.time.LocalDateTime;
@@ -16,6 +17,9 @@ public class ArSession {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_session_id")
     private CustomerSession customerSession;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", length = 20)
     private Gender gender;
@@ -29,6 +33,7 @@ public class ArSession {
     public static ArSession create(LocalDateTime createdAt) {
         ArSession arSession = new ArSession();
         arSession.customerSession = null;
+        arSession.member = null;
         arSession.gender = null;
         arSession.startedAt = createdAt;
         arSession.endedAt = null;
@@ -55,5 +60,12 @@ public class ArSession {
 
     public void setGender(Gender gender) {
         this.gender = gender;
+    }
+
+    public void mapMember(Member member) {
+        if (this.member != null && !this.member.getId().equals(member.getId())) {
+            throw new IllegalStateException("ArSession is already mapped to another Member");
+        }
+        this.member = member;
     }
 }

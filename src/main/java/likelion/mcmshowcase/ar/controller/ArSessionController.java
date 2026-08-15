@@ -7,6 +7,8 @@ import likelion.mcmshowcase.ar.dto.ArSessionCustomerSessionResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionEndResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderResponse;
+import likelion.mcmshowcase.ar.dto.ArSessionMemberRequest;
+import likelion.mcmshowcase.ar.dto.ArSessionMemberResponse;
 import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
 import likelion.mcmshowcase.ar.service.ArSessionService;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +61,13 @@ public class ArSessionController {
             @Valid @RequestBody ArSessionGenderRequest request
     ) {
         return ResponseEntity.ok(arSessionService.setGender(arSessionId, request));
+    }
+
+    @PatchMapping("/{arSessionId}/member")
+    public ResponseEntity<ArSessionMemberResponse> mapMember(
+            @PathVariable Long arSessionId,
+            @Valid @RequestBody ArSessionMemberRequest request
+    ) {
+        return ResponseEntity.ok(arSessionService.mapMember(arSessionId, request));
     }
 }

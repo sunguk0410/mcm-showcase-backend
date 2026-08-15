@@ -6,12 +6,16 @@ import likelion.mcmshowcase.ar.dto.ArSessionCustomerSessionResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionEndResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderResponse;
+import likelion.mcmshowcase.ar.dto.ArSessionMemberRequest;
+import likelion.mcmshowcase.ar.dto.ArSessionMemberResponse;
 import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.recommendation.service.RecommendationService;
+import likelion.mcmshowcase.member.entity.Member;
+import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.visit.entity.CustomerSession;
 import likelion.mcmshowcase.visit.entity.CustomerSessionStatus;
 import likelion.mcmshowcase.visit.repository.CustomerSessionRepository;
@@ -41,6 +45,27 @@ public class ArSessionService {
     private final ArInteractionRepository arInteractionRepository;
     private final ZoneInteractionRepository zoneInteractionRepository;
     private final RecommendationService recommendationService;
+    private final MemberRepository memberRepository;
+
+    @Transactional
+    public ArSessionMemberResponse mapMember(Long arSessionId, ArSessionMemberRequest request) {
+        ArSession arSession = arSessionRepository.findById(arSessionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+        Member member = memberRepository.findById(request.memberId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Member not found: " + request.memberId()));
+
+        if (arSession.getMember() != null
+                && !arSession.getMember().getId().equals(member.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "ArSession is already mapped to another Member");
+        }
+
+        arSession.mapMember(member);
+        ArSession savedArSession = arSessionRepository.save(arSession);
+        return new ArSessionMemberResponse(savedArSession.getId(), member.getId());
+    }
 
     @Transactional(readOnly = true)
     public ProductSelectHistoryResponse getProductSelectHistory(Long arSessionId) {

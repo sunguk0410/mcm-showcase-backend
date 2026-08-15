@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface StyleProfileRepository extends JpaRepository<StyleProfile, Long> {
-    List<StyleProfile> findByArSessionCustomerSessionMemberOrderByCreatedAtDesc(Member member);
+    List<StyleProfile> findByArSessionMemberOrderByCreatedAtDesc(Member member);
 }
