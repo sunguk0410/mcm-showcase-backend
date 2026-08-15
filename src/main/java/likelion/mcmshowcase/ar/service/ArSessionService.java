@@ -8,6 +8,7 @@ import likelion.mcmshowcase.ar.dto.ArSessionGenderRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberResponse;
+import likelion.mcmshowcase.ar.dto.ArSessionMemberStatusResponse;
 import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.entity.ArSession;
@@ -46,6 +47,17 @@ public class ArSessionService {
     private final ZoneInteractionRepository zoneInteractionRepository;
     private final RecommendationService recommendationService;
     private final MemberRepository memberRepository;
+
+    @Transactional(readOnly = true)
+    public ArSessionMemberStatusResponse getMemberStatus(Long arSessionId) {
+        ArSession arSession = arSessionRepository.findById(arSessionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+        Long memberId = arSession.getMember() == null
+                ? null
+                : arSession.getMember().getId();
+        return new ArSessionMemberStatusResponse(arSession.getId(), memberId);
+    }
 
     @Transactional
     public ArSessionMemberResponse mapMember(Long arSessionId, ArSessionMemberRequest request) {

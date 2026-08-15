@@ -9,6 +9,7 @@ import likelion.mcmshowcase.ar.dto.ArSessionGenderRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberResponse;
+import likelion.mcmshowcase.ar.dto.ArSessionMemberStatusResponse;
 import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
 import likelion.mcmshowcase.ar.service.ArSessionService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class ArSessionController {
 
     private final ArSessionService arSessionService;
+
+    @GetMapping("/{arSessionId}")
+    public ResponseEntity<ArSessionMemberStatusResponse> getMemberStatus(
+            @PathVariable Long arSessionId
+    ) {
+        return ResponseEntity.ok(arSessionService.getMemberStatus(arSessionId));
+    }
 
     @GetMapping("/{arSessionId}/product-select-history")
     public ResponseEntity<ProductSelectHistoryResponse> getProductSelectHistory(
