@@ -6,7 +6,10 @@ import likelion.mcmshowcase.ar.dto.ArSessionCustomerSessionResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionEndResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionGenderResponse;
+import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
+import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.entity.ArSession;
+import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.recommendation.service.RecommendationService;
 import likelion.mcmshowcase.visit.entity.CustomerSession;
@@ -23,6 +26,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +38,37 @@ public class ArSessionService {
 
     private final CustomerSessionRepository customerSessionRepository;
     private final ArSessionRepository arSessionRepository;
+    private final ArInteractionRepository arInteractionRepository;
     private final ZoneInteractionRepository zoneInteractionRepository;
     private final RecommendationService recommendationService;
+
+    @Transactional(readOnly = true)
+    public ProductSelectHistoryResponse getProductSelectHistory(Long arSessionId) {
+        ArSession arSession = arSessionRepository.findById(arSessionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+
+        List<ProductSelectHistoryResponse.Product> products = arInteractionRepository
+                .findByArSessionAndInteractionTypeOrderBySequenceNoAsc(
+                        arSession, ArInteractionType.PRODUCT_SELECT)
+                .stream()
+                .filter(interaction -> interaction.getProduct() != null)
+                .map(interaction -> interaction.getProduct())
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(
+                                product -> product.getId(),
+                                Function.identity(),
+                                (first, ignored) -> first,
+                                LinkedHashMap::new
+                        ),
+                        productsById -> productsById.values().stream()
+                                .map(product -> new ProductSelectHistoryResponse.Product(
+                                        product.getId(), product.getImageUrl()))
+                                .toList()
+                ));
+
+        return new ProductSelectHistoryResponse(arSessionId, products);
+    }
 
     @Transactional
     public ArSessionCreateResponse create() {
