@@ -1,6 +1,9 @@
 server:
   forward-headers-strategy: framework
 
+app:
+  public-base-url: ${PUBLIC_BASE_URL:}
+
 spring:
   datasource:
     url: ${DB_URL}
