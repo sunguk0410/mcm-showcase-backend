@@ -1,14 +1,13 @@
 package likelion.mcmshowcase.ar.service;
 
-import likelion.mcmshowcase.ar.dto.ArSessionCreateRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionCreateResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionCustomerSessionRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionCustomerSessionResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionEndResponse;
+import likelion.mcmshowcase.ar.dto.ArSessionGenderRequest;
+import likelion.mcmshowcase.ar.dto.ArSessionGenderResponse;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
-import likelion.mcmshowcase.global.enums.Gender;
-import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.recommendation.service.RecommendationService;
 import likelion.mcmshowcase.visit.entity.CustomerSession;
 import likelion.mcmshowcase.visit.entity.CustomerSessionStatus;
@@ -36,27 +35,12 @@ public class ArSessionService {
     private final RecommendationService recommendationService;
 
     @Transactional
-    public ArSessionCreateResponse create(ArSessionCreateRequest request) {
-        CustomerSession customerSession = customerSessionRepository.findById(request.customerSessionId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "CustomerSession not found: " + request.customerSessionId()));
-
-        if (customerSession.getStatus() != CustomerSessionStatus.ACTIVE) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "ArSession can only be started for an active CustomerSession");
-        }
-
-        Gender gender = resolveGender(customerSession, request.gender());
+    public ArSessionCreateResponse create() {
         LocalDateTime now = LocalDateTime.now();
-        ArSession arSession = ArSession.create(customerSession, gender, now);
+        ArSession arSession = ArSession.create(now);
         ArSession savedArSession = arSessionRepository.save(arSession);
 
-        return new ArSessionCreateResponse(
-                savedArSession.getId(),
-                customerSession.getId(),
-                savedArSession.getGender(),
-                savedArSession.getStartedAt()
-        );
+        return new ArSessionCreateResponse(savedArSession.getId());
     }
 
     @Transactional
@@ -79,10 +63,23 @@ public class ArSessionService {
 
         return new ArSessionEndResponse(
                 arSession.getId(),
-                arSession.getCustomerSession().getId(),
+                arSession.getCustomerSession() == null
+                        ? null
+                        : arSession.getCustomerSession().getId(),
                 arSession.getStartedAt(),
                 arSession.getEndedAt()
         );
+    }
+
+    @Transactional
+    public ArSessionGenderResponse setGender(Long arSessionId, ArSessionGenderRequest request) {
+        ArSession arSession = arSessionRepository.findById(arSessionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+
+        arSession.setGender(request.gender());
+
+        return new ArSessionGenderResponse(arSession.getId(), arSession.getGender());
     }
 
     @Transactional
@@ -143,20 +140,4 @@ public class ArSessionService {
         });
     }
 
-    private Gender resolveGender(CustomerSession customerSession, Gender requestedGender) {
-        Member member = customerSession.getMember();
-        if (member != null) {
-            if (member.getGender() == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT, "The identified member does not have a gender");
-            }
-            return member.getGender();
-        }
-
-        if (requestedGender == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "gender is required for an anonymous CustomerSession");
-        }
-        return requestedGender;
-    }
 }

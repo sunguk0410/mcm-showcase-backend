@@ -1,11 +1,12 @@
 package likelion.mcmshowcase.ar.controller;
 
 import jakarta.validation.Valid;
-import likelion.mcmshowcase.ar.dto.ArSessionCreateRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionCreateResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionCustomerSessionRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionCustomerSessionResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionEndResponse;
+import likelion.mcmshowcase.ar.dto.ArSessionGenderRequest;
+import likelion.mcmshowcase.ar.dto.ArSessionGenderResponse;
 import likelion.mcmshowcase.ar.service.ArSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,10 +26,8 @@ public class ArSessionController {
     private final ArSessionService arSessionService;
 
     @PostMapping
-    public ResponseEntity<ArSessionCreateResponse> create(
-            @Valid @RequestBody ArSessionCreateRequest request
-    ) {
-        ArSessionCreateResponse response = arSessionService.create(request);
+    public ResponseEntity<ArSessionCreateResponse> create() {
+        ArSessionCreateResponse response = arSessionService.create();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -43,5 +42,13 @@ public class ArSessionController {
             @Valid @RequestBody ArSessionCustomerSessionRequest request
     ) {
         return ResponseEntity.ok(arSessionService.mapCustomerSession(arSessionId, request));
+    }
+
+    @PatchMapping("/{arSessionId}/gender")
+    public ResponseEntity<ArSessionGenderResponse> setGender(
+            @PathVariable Long arSessionId,
+            @Valid @RequestBody ArSessionGenderRequest request
+    ) {
+        return ResponseEntity.ok(arSessionService.setGender(arSessionId, request));
     }
 }

@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 public class ArSession {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "customer_session_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_session_id")
     private CustomerSession customerSession;
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", length = 20)
@@ -26,14 +26,10 @@ public class ArSession {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public static ArSession create(
-            CustomerSession customerSession,
-            Gender gender,
-            LocalDateTime createdAt
-    ) {
+    public static ArSession create(LocalDateTime createdAt) {
         ArSession arSession = new ArSession();
-        arSession.customerSession = customerSession;
-        arSession.gender = gender;
+        arSession.customerSession = null;
+        arSession.gender = null;
         arSession.startedAt = createdAt;
         arSession.endedAt = null;
         arSession.createdAt = createdAt;
@@ -55,5 +51,9 @@ public class ArSession {
             throw new IllegalStateException("ArSession is already mapped to another CustomerSession");
         }
         this.customerSession = customerSession;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 }
