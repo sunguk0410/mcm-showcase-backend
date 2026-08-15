@@ -1,6 +1,7 @@
 package likelion.mcmshowcase.avatar.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class FluxClient {
 
     private static final String PROMPT = """
@@ -57,6 +60,12 @@ public class FluxClient {
 
     public String generateAvatar(List<String> imageUrls) {
         validateConfiguration();
+        log.info(
+                "Submitting FLUX request. endpoint={}, imageCount={}, images={}",
+                modelPath,
+                imageUrls.size(),
+                imageUrls
+        );
         try {
             FluxSubmitResponse submitResponse = restClient.post()
                     .uri(modelPath)
@@ -71,9 +80,19 @@ public class FluxClient {
                 throw invalidResponse();
             }
             return pollUntilReady(submitResponse.pollingUrl());
+        } catch (RestClientResponseException exception) {
+            log.error(
+                    "FLUX submit failed. status={}, body={}",
+                    exception.getStatusCode(),
+                    exception.getResponseBodyAsString(),
+                    exception
+            );
+            throw unavailable("FLUX API request failed");
         } catch (ResourceAccessException exception) {
+            log.error("FLUX submit connection failed or timed out.", exception);
             throw unavailable("FLUX API connection failed or timed out");
         } catch (RestClientException exception) {
+            log.error("FLUX submit failed.", exception);
             throw unavailable("FLUX API request failed");
         }
     }
@@ -88,9 +107,19 @@ public class FluxClient {
                 throw invalidResponse();
             }
             return image;
+        } catch (RestClientResponseException exception) {
+            log.error(
+                    "FLUX result image download failed. status={}, body={}",
+                    exception.getStatusCode(),
+                    exception.getResponseBodyAsString(),
+                    exception
+            );
+            throw unavailable("FLUX image download failed");
         } catch (ResourceAccessException exception) {
+            log.error("FLUX result image download failed or timed out. url={}", imageUrl, exception);
             throw unavailable("FLUX image download failed or timed out");
         } catch (RestClientException exception) {
+            log.error("FLUX result image download failed. url={}", imageUrl, exception);
             throw unavailable("FLUX image download failed");
         }
     }
@@ -99,11 +128,28 @@ public class FluxClient {
         long deadline = System.nanoTime() + maxPollingDuration.toNanos();
         while (System.nanoTime() < deadline) {
             waitBeforePolling();
-            FluxPollResponse response = restClient.get()
-                    .uri(pollingUrl)
-                    .header("x-key", apiKey)
-                    .retrieve()
-                    .body(FluxPollResponse.class);
+            FluxPollResponse response;
+            try {
+                response = restClient.get()
+                        .uri(pollingUrl)
+                        .header("x-key", apiKey)
+                        .retrieve()
+                        .body(FluxPollResponse.class);
+            } catch (RestClientResponseException exception) {
+                log.error(
+                        "FLUX polling failed. status={}, body={}",
+                        exception.getStatusCode(),
+                        exception.getResponseBodyAsString(),
+                        exception
+                );
+                throw unavailable("FLUX API polling failed");
+            } catch (ResourceAccessException exception) {
+                log.error("FLUX polling connection failed or timed out. url={}", pollingUrl, exception);
+                throw unavailable("FLUX API polling failed or timed out");
+            } catch (RestClientException exception) {
+                log.error("FLUX polling failed. url={}", pollingUrl, exception);
+                throw unavailable("FLUX API polling failed");
+            }
             if (response == null || response.status() == null) {
                 throw invalidResponse();
             }
@@ -117,6 +163,7 @@ public class FluxClient {
             }
             if ("Error".equalsIgnoreCase(response.status())
                     || "Failed".equalsIgnoreCase(response.status())) {
+                log.error("FLUX image generation failed during polling. status={}", response.status());
                 throw unavailable("FLUX image generation failed");
             }
         }
