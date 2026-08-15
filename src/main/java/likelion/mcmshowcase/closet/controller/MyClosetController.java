@@ -25,9 +25,8 @@ public class MyClosetController {
 
     @GetMapping("/{styleProfileId}")
     public ResponseEntity<MyClosetDetailResponse> getMyClosetDetail(
-            @PathVariable Long styleProfileId,
-            @RequestParam Long memberId
+            @PathVariable Long styleProfileId
     ) {
-        return ResponseEntity.ok(myClosetService.getMyClosetDetail(styleProfileId, memberId));
+        return ResponseEntity.ok(myClosetService.getMyClosetDetail(styleProfileId));
     }
 }

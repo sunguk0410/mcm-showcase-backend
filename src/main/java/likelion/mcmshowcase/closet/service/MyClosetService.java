@@ -9,7 +9,6 @@ import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
-import likelion.mcmshowcase.metaverse.repository.AvatarRepository;
 import likelion.mcmshowcase.product.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +27,6 @@ public class MyClosetService {
 
     private final MemberRepository memberRepository;
     private final StyleProfileRepository styleProfileRepository;
-    private final AvatarRepository avatarRepository;
     private final TodayLookRepository todayLookRepository;
     private final TodayLookItemRepository todayLookItemRepository;
     private final ArInteractionRepository arInteractionRepository;
@@ -39,30 +40,17 @@ public class MyClosetService {
                 .map(styleProfile -> new MyClosetListItemResponse(
                         styleProfile.getId(),
                         styleProfile.getStyleIdentityTitle(),
-                        styleProfile.getCreatedAt(),
-                        avatarRepository.findTopByStyleProfileOrderByCreatedAtDesc(styleProfile)
-                                .map(avatar -> avatar.getAvatarPreset().getModelAssetUrl())
-                                .orElse(null)
+                        styleProfile.getCreatedAt()
                 ))
                 .toList();
         return new MyClosetListResponse(items);
     }
 
     @Transactional(readOnly = true)
-    public MyClosetDetailResponse getMyClosetDetail(Long styleProfileId, Long memberId) {
-        Member member = findMember(memberId);
-        StyleProfile styleProfile = styleProfileRepository
-                .findByIdAndArSessionCustomerSessionMember(styleProfileId, member)
+    public MyClosetDetailResponse getMyClosetDetail(Long styleProfileId) {
+        StyleProfile styleProfile = styleProfileRepository.findById(styleProfileId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "StyleProfile not found: " + styleProfileId));
-
-        MyClosetAvatarResponse avatarResponse = avatarRepository
-                .findTopByStyleProfileOrderByCreatedAtDesc(styleProfile)
-                .map(avatar -> new MyClosetAvatarResponse(
-                        avatar.getAvatarPreset().getId(),
-                        avatar.getAvatarPreset().getModelAssetUrl()
-                ))
-                .orElse(new MyClosetAvatarResponse(null, null));
 
         List<MyClosetProductResponse> todayLookProducts = todayLookRepository
                 .findTopByStyleProfileOrderByCreatedAtDesc(styleProfile)
@@ -75,16 +63,25 @@ public class MyClosetService {
 
         List<MyClosetProductResponse> fittingHistory = arInteractionRepository
                 .findByArSessionAndInteractionTypeOrderBySequenceNoAsc(
-                        styleProfile.getArSession(), ArInteractionType.FITTING)
+                        styleProfile.getArSession(), ArInteractionType.PRODUCT_SELECT)
                 .stream()
                 .filter(interaction -> interaction.getProduct() != null)
-                .map(interaction -> toProductResponse(interaction.getProduct()))
-                .toList();
+                .map(interaction -> interaction.getProduct())
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(
+                                Product::getId,
+                                Function.identity(),
+                                (first, ignored) -> first,
+                                LinkedHashMap::new
+                        ),
+                        productsById -> productsById.values().stream()
+                                .map(this::toProductResponse)
+                                .toList()
+                ));
 
         return new MyClosetDetailResponse(
                 styleProfile.getId(),
                 styleProfile.getStyleIdentityTitle(),
-                avatarResponse,
                 new MyClosetTodayLookResponse(todayLookProducts),
                 fittingHistory
         );
