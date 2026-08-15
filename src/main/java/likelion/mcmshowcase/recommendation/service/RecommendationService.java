@@ -3,6 +3,7 @@ package likelion.mcmshowcase.recommendation.service;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
+import likelion.mcmshowcase.avatar.service.AvatarGenerationService;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.entity.TodayLook;
 import likelion.mcmshowcase.closet.entity.TodayLookItem;
@@ -52,6 +53,7 @@ public class RecommendationService {
     private final StyleProfileRepository styleProfileRepository;
     private final TodayLookRepository todayLookRepository;
     private final TodayLookItemRepository todayLookItemRepository;
+    private final AvatarGenerationService avatarGenerationService;
 
     @Transactional
     public AvatarLookResponse createAvatarLook(Long arSessionId) {
@@ -62,7 +64,11 @@ public class RecommendationService {
                 .findTopByArSessionOrderByCreatedAtDesc(arSession)
                 .orElse(null);
         if (existingStyleProfile != null) {
-            return toAvatarLookResponse(existingStyleProfile);
+            String avatarImageUrl = isGeneratedAvatar(existingStyleProfile.getAvatarImageUrl())
+                    ? existingStyleProfile.getAvatarImageUrl()
+                    : avatarGenerationService.generate(existingStyleProfile.getId());
+            return new AvatarLookResponse(
+                    arSessionId, existingStyleProfile.getId(), avatarImageUrl);
         }
 
         PythonAvatarLookResponse pythonResponse = pythonRecommendationClient.createAvatarLook(
@@ -109,35 +115,15 @@ public class RecommendationService {
                         todayLook, orderedProducts.get(index), index + 1))
                 .toList();
         todayLookItemRepository.saveAll(items);
+        todayLookItemRepository.flush();
 
-        return new AvatarLookResponse(
-                arSessionId,
-                styleProfile.getId(),
-                styleProfile.getStyleIdentityTitle(),
-                orderedProducts.stream()
-                        .map(product -> new AvatarLookResponse.Product(product.getId()))
-                        .toList()
-        );
+        String generatedAvatarImageUrl = avatarGenerationService.generate(styleProfile.getId());
+        return new AvatarLookResponse(arSessionId, styleProfile.getId(), generatedAvatarImageUrl);
     }
 
-    private AvatarLookResponse toAvatarLookResponse(StyleProfile styleProfile) {
-        TodayLook todayLook = todayLookRepository
-                .findTopByStyleProfileOrderByCreatedAtDesc(styleProfile)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "TodayLook not found for existing StyleProfile: " + styleProfile.getId()
-                ));
-        List<AvatarLookResponse.Product> products = todayLookItemRepository
-                .findByTodayLookOrderByDisplayOrderAsc(todayLook)
-                .stream()
-                .map(item -> new AvatarLookResponse.Product(item.getProduct().getId()))
-                .toList();
-        return new AvatarLookResponse(
-                styleProfile.getArSession().getId(),
-                styleProfile.getId(),
-                styleProfile.getStyleIdentityTitle(),
-                products
-        );
+    private boolean isGeneratedAvatar(String avatarImageUrl) {
+        return avatarImageUrl != null
+                && avatarImageUrl.startsWith("/images/generated/");
     }
 
     @Transactional(readOnly = true)

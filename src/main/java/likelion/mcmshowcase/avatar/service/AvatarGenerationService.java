@@ -1,7 +1,6 @@
 package likelion.mcmshowcase.avatar.service;
 
 import likelion.mcmshowcase.avatar.client.FluxClient;
-import likelion.mcmshowcase.avatar.dto.AvatarGenerateResponse;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.entity.TodayLookItem;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
@@ -40,7 +39,7 @@ public class AvatarGenerationService {
     private String generatedImageDirectory;
 
     @Transactional
-    public AvatarGenerateResponse generate(Long styleProfileId) {
+    public String generate(Long styleProfileId) {
         StyleProfile styleProfile = styleProfileRepository.findById(styleProfileId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "StyleProfile not found: " + styleProfileId));
@@ -72,7 +71,7 @@ public class AvatarGenerationService {
 
         styleProfile.updateAvatarImageUrl(relativeImageUrl);
         styleProfileRepository.save(styleProfile);
-        return new AvatarGenerateResponse(styleProfileId, relativeImageUrl);
+        return relativeImageUrl;
     }
 
     private List<String> createPublicImageUrls(
