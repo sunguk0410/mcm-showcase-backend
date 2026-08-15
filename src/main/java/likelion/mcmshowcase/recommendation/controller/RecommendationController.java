@@ -1,12 +1,10 @@
 package likelion.mcmshowcase.recommendation.controller;
 
+import likelion.mcmshowcase.recommendation.dto.RecommendationResponse;
 import likelion.mcmshowcase.recommendation.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/recommendations")
@@ -19,5 +17,25 @@ public class RecommendationController {
     public ResponseEntity<Void> initializePreferences(@PathVariable Long arSessionId) {
         recommendationService.initializePreferences(arSessionId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/ar-sessions/{arSessionId}/categories/{categoryCode}")
+    public ResponseEntity<RecommendationResponse> getInitialRecommendations(
+            @PathVariable Long arSessionId,
+            @PathVariable String categoryCode
+    ) {
+        return ResponseEntity.ok(
+                recommendationService.getInitialRecommendations(arSessionId, categoryCode)
+        );
+    }
+
+    @PostMapping("/ar-sessions/{arSessionId}/categories/{categoryCode}/refresh")
+    public ResponseEntity<RecommendationResponse> refreshRecommendations(
+            @PathVariable Long arSessionId,
+            @PathVariable String categoryCode
+    ) {
+        return ResponseEntity.ok(
+                recommendationService.refreshRecommendations(arSessionId, categoryCode)
+        );
     }
 }

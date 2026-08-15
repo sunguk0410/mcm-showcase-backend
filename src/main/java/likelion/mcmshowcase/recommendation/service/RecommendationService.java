@@ -3,7 +3,6 @@ package likelion.mcmshowcase.recommendation.service;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
-import likelion.mcmshowcase.ar.entity.ArInteraction;
 import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
 import likelion.mcmshowcase.recommendation.client.PythonRecommendationClient;
@@ -43,10 +42,81 @@ public class RecommendationService {
 
     @Transactional(readOnly = true)
     public void initializePreferences(Long arSessionId) {
-        ArSession arSession = arSessionRepository.findById(arSessionId)
+        ArSession arSession = findArSession(arSessionId);
+
+        pythonRecommendationClient.initializePreferences(
+                new PythonInitialPreferenceRequest(getZoneInteractions(arSession))
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public RecommendationResponse getInitialRecommendations(Long arSessionId, String categoryCode) {
+        return recommend(arSessionId, categoryCode, false);
+    }
+
+    @Transactional(readOnly = true)
+    public RecommendationResponse refreshRecommendations(Long arSessionId, String categoryCode) {
+        return recommend(arSessionId, categoryCode, true);
+    }
+
+    private RecommendationResponse recommend(
+            Long arSessionId,
+            String categoryCode,
+            boolean includeArInteractions
+    ) {
+        ArSession arSession = findArSession(arSessionId);
+
+        List<PythonRecommendationInteraction> interactions = includeArInteractions
+                ? getArInteractions(arSession)
+                : List.of();
+
+        PythonRecommendationResponse pythonResponse = pythonRecommendationClient.recommend(
+                new PythonRecommendationRequest(
+                        getZoneInteractions(arSession),
+                        interactions,
+                        categoryCode,
+                        DEFAULT_TOP_K
+                )
+        );
+
+        List<Long> recommendedProductIds = pythonResponse.recommendations().stream()
+                .map(PythonRecommendationResponse.Recommendation::productId)
+                .toList();
+        Map<Long, Product> productsById = productRepository.findAllById(recommendedProductIds)
+                .stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        List<RecommendedProductResponse> products = pythonResponse.recommendations().stream()
+                .filter(recommendation -> productsById.containsKey(recommendation.productId()))
+                .filter(recommendation -> productsById.get(recommendation.productId())
+                        .getCategory().getCode().equalsIgnoreCase(categoryCode))
+                .limit(DEFAULT_TOP_K)
+                .map(recommendation -> toResponse(
+                        productsById.get(recommendation.productId()), recommendation.score()))
+                .toList();
+
+        return new RecommendationResponse(arSession.getId(), products);
+    }
+
+    private ArSession findArSession(Long arSessionId) {
+        return arSessionRepository.findById(arSessionId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+    }
 
+    private List<PythonRecommendationInteraction> getArInteractions(ArSession arSession) {
+        return arInteractionRepository.findByArSessionOrderBySequenceNoAsc(arSession)
+                .stream()
+                .map(interaction -> new PythonRecommendationInteraction(
+                        interaction.getProduct().getId(),
+                        interaction.getInteractionType().name()
+                ))
+                .toList();
+    }
+
+    private List<PythonInitialPreferenceRequest.ZoneInteraction> getZoneInteractions(
+            ArSession arSession
+    ) {
         Map<ZoneCategoryKey, Long> dwellSecondsByZoneCategory = new LinkedHashMap<>();
         zoneInteractionRepository
                 .findByCustomerSessionOrderByEnteredAtAsc(arSession.getCustomerSession())
@@ -62,65 +132,13 @@ public class RecommendationService {
                     dwellSecondsByZoneCategory.merge(key, dwellSeconds, Long::sum);
                 });
 
-        List<PythonInitialPreferenceRequest.ZoneInteraction> zoneInteractions =
-                dwellSecondsByZoneCategory.entrySet().stream()
-                        .map(entry -> new PythonInitialPreferenceRequest.ZoneInteraction(
-                                entry.getKey().zone(),
-                                entry.getKey().category(),
-                                entry.getValue()
-                        ))
-                        .toList();
-
-        pythonRecommendationClient.initializePreferences(
-                new PythonInitialPreferenceRequest(zoneInteractions)
-        );
-    }
-
-    @Transactional(readOnly = true)
-    public RecommendationResponse recommend(Long arSessionId) {
-        ArSession arSession = arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
-
-        List<ArInteraction> arInteractions = arInteractionRepository
-                .findByArSessionOrderBySequenceNoAsc(arSession);
-
-        if (arInteractions.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "ArSession has no interactions: " + arSessionId);
-        }
-
-        List<PythonRecommendationInteraction> interactions = arInteractions.stream()
-                .map(interaction -> new PythonRecommendationInteraction(
-                        interaction.getProduct().getId(),
-                        interaction.getInteractionType().name()
+        return dwellSecondsByZoneCategory.entrySet().stream()
+                .map(entry -> new PythonInitialPreferenceRequest.ZoneInteraction(
+                        entry.getKey().zone(),
+                        entry.getKey().category(),
+                        entry.getValue()
                 ))
                 .toList();
-
-        Product currentProduct = arInteractions.get(arInteractions.size() - 1).getProduct();
-
-        PythonRecommendationResponse pythonResponse = pythonRecommendationClient.recommend(
-                new PythonRecommendationRequest(
-                        interactions,
-                        currentProduct.getCategory().getCode(),
-                        DEFAULT_TOP_K
-                )
-        );
-
-        List<Long> recommendedProductIds = pythonResponse.recommendations().stream()
-                .map(PythonRecommendationResponse.Recommendation::productId)
-                .toList();
-        Map<Long, Product> productsById = productRepository.findAllById(recommendedProductIds)
-                .stream()
-                .collect(Collectors.toMap(Product::getId, Function.identity()));
-
-        List<RecommendedProductResponse> products = pythonResponse.recommendations().stream()
-                .filter(recommendation -> productsById.containsKey(recommendation.productId()))
-                .map(recommendation -> toResponse(
-                        productsById.get(recommendation.productId()), recommendation.score()))
-                .toList();
-
-        return new RecommendationResponse(arSession.getId(), products);
     }
 
     private RecommendedProductResponse toResponse(Product product, Double score) {
