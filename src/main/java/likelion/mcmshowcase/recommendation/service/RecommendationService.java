@@ -3,10 +3,19 @@ package likelion.mcmshowcase.recommendation.service;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
+import likelion.mcmshowcase.closet.entity.StyleProfile;
+import likelion.mcmshowcase.closet.entity.TodayLook;
+import likelion.mcmshowcase.closet.entity.TodayLookItem;
+import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
+import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
+import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
 import likelion.mcmshowcase.recommendation.client.PythonRecommendationClient;
 import likelion.mcmshowcase.recommendation.dto.PythonInitialPreferenceRequest;
+import likelion.mcmshowcase.recommendation.dto.AvatarLookResponse;
+import likelion.mcmshowcase.recommendation.dto.PythonAvatarLookRequest;
+import likelion.mcmshowcase.recommendation.dto.PythonAvatarLookResponse;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationInteraction;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationRequest;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationResponse;
@@ -21,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +49,66 @@ public class RecommendationService {
     private final ProductRepository productRepository;
     private final ZoneInteractionRepository zoneInteractionRepository;
     private final PythonRecommendationClient pythonRecommendationClient;
+    private final StyleProfileRepository styleProfileRepository;
+    private final TodayLookRepository todayLookRepository;
+    private final TodayLookItemRepository todayLookItemRepository;
+
+    @Transactional
+    public AvatarLookResponse createAvatarLook(Long arSessionId) {
+        ArSession arSession = findArSession(arSessionId);
+        PythonAvatarLookResponse pythonResponse = pythonRecommendationClient.createAvatarLook(
+                new PythonAvatarLookRequest(arSessionId)
+        );
+        if (!arSessionId.equals(pythonResponse.arSessionId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Recommendation server returned an invalid response"
+            );
+        }
+
+        List<Long> productIds = pythonResponse.products().stream()
+                .map(PythonAvatarLookResponse.Product::productId)
+                .toList();
+        Map<Long, Product> productsById = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+        List<Product> orderedProducts = productIds.stream()
+                .map(productId -> {
+                    Product product = productsById.get(productId);
+                    if (product == null) {
+                        throw new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Product not found: " + productId);
+                    }
+                    return product;
+                })
+                .toList();
+
+        LocalDateTime now = LocalDateTime.now();
+        StyleProfile styleProfile = styleProfileRepository.save(
+                StyleProfile.create(arSession, pythonResponse.styleIdentityTitle(), now)
+        );
+        TodayLook todayLook = todayLookRepository.save(TodayLook.create(styleProfile, now));
+        List<TodayLookItem> items = java.util.stream.IntStream.range(0, orderedProducts.size())
+                .mapToObj(index -> TodayLookItem.create(
+                        todayLook, orderedProducts.get(index), index + 1))
+                .toList();
+        todayLookItemRepository.saveAll(items);
+
+        List<AvatarLookResponse.Product> products = orderedProducts.stream()
+                .map(product -> new AvatarLookResponse.Product(
+                        product.getId(),
+                        product.getProductCode(),
+                        product.getName(),
+                        product.getImageUrl(),
+                        product.getProductUrl()
+                ))
+                .toList();
+        return new AvatarLookResponse(
+                arSessionId,
+                styleProfile.getId(),
+                styleProfile.getStyleIdentityTitle(),
+                new AvatarLookResponse.TodayLook(products)
+        );
+    }
 
     @Transactional(readOnly = true)
     public void initializePreferences(Long arSessionId) {

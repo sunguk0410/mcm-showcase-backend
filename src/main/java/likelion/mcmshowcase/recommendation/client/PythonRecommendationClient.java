@@ -1,6 +1,8 @@
 package likelion.mcmshowcase.recommendation.client;
 
 import likelion.mcmshowcase.recommendation.dto.PythonInitialPreferenceRequest;
+import likelion.mcmshowcase.recommendation.dto.PythonAvatarLookRequest;
+import likelion.mcmshowcase.recommendation.dto.PythonAvatarLookResponse;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationRequest;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,6 +74,33 @@ public class PythonRecommendationClient {
                     .body(request)
                     .retrieve()
                     .toBodilessEntity();
+        } catch (HttpServerErrorException | ResourceAccessException exception) {
+            throw unavailable();
+        } catch (RestClientResponseException exception) {
+            throw unavailable();
+        } catch (RestClientException exception) {
+            throw unavailable();
+        }
+    }
+
+    public PythonAvatarLookResponse createAvatarLook(PythonAvatarLookRequest request) {
+        try {
+            PythonAvatarLookResponse response = restClient.post()
+                    .uri("/recommendations/avatar-look")
+                    .body(request)
+                    .retrieve()
+                    .body(PythonAvatarLookResponse.class);
+
+            if (response == null
+                    || response.arSessionId() == null
+                    || response.styleIdentityTitle() == null
+                    || response.styleIdentityTitle().isBlank()
+                    || response.products() == null
+                    || response.products().stream().anyMatch(product ->
+                    product == null || product.productId() == null)) {
+                throw invalidResponse();
+            }
+            return response;
         } catch (HttpServerErrorException | ResourceAccessException exception) {
             throw unavailable();
         } catch (RestClientResponseException exception) {
