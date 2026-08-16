@@ -10,12 +10,14 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.time.Duration;
 
 @Component
 public class PythonImageClient {
 
     private final RestClient restClient;
+    private final URI baseUri;
 
     public PythonImageClient(
             RestClient.Builder restClientBuilder,
@@ -30,6 +32,7 @@ public class PythonImageClient {
                 .baseUrl(baseUrl)
                 .requestFactory(requestFactory)
                 .build();
+        this.baseUri = URI.create(baseUrl);
     }
 
     public String removeBackground(String imageUrl) {
@@ -47,7 +50,7 @@ public class PythonImageClient {
                         "Background removal server returned an invalid response"
                 );
             }
-            return response.imageUrl();
+            return toAbsoluteImageUrl(response.imageUrl());
         } catch (RestClientException exception) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_GATEWAY,
@@ -55,5 +58,12 @@ public class PythonImageClient {
                     exception
             );
         }
+    }
+
+    private String toAbsoluteImageUrl(String imageUrl) {
+        if (imageUrl.startsWith("/")) {
+            return baseUri.resolve(imageUrl).toString();
+        }
+        return imageUrl;
     }
 }
