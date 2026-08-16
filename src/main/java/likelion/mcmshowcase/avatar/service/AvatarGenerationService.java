@@ -2,6 +2,7 @@ package likelion.mcmshowcase.avatar.service;
 
 import likelion.mcmshowcase.avatar.client.FluxClient;
 import likelion.mcmshowcase.avatar.client.PythonImageClient;
+import likelion.mcmshowcase.avatar.dto.AvatarReferenceProduct;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.entity.TodayLookItem;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
@@ -68,8 +69,9 @@ public class AvatarGenerationService {
             );
         }
 
-        List<String> publicImageUrls = createPublicImageUrls(styleProfile, items);
-        String fluxImageUrl = fluxClient.generateAvatar(publicImageUrls);
+        String baseAvatarUrl = toPublicUrl(styleProfile.getAvatarImageUrl());
+        List<AvatarReferenceProduct> referenceProducts = createReferenceProducts(items);
+        String fluxImageUrl = fluxClient.generateAvatar(baseAvatarUrl, referenceProducts);
         String finalImageUrl = removeBackgroundOrUseOriginal(fluxImageUrl);
         byte[] generatedImage = fluxClient.downloadGeneratedImage(finalImageUrl);
         String relativeImageUrl = saveGeneratedImage(styleProfileId, generatedImage);
@@ -95,12 +97,8 @@ public class AvatarGenerationService {
         }
     }
 
-    private List<String> createPublicImageUrls(
-            StyleProfile styleProfile,
-            List<TodayLookItem> items
-    ) {
-        List<String> imageUrls = new ArrayList<>();
-        imageUrls.add(toPublicUrl(styleProfile.getAvatarImageUrl()));
+    private List<AvatarReferenceProduct> createReferenceProducts(List<TodayLookItem> items) {
+        List<AvatarReferenceProduct> referenceProducts = new ArrayList<>();
         for (TodayLookItem item : items) {
             String productImageUrl = item.getProduct().getImageUrl();
             if (productImageUrl == null || productImageUrl.isBlank()) {
@@ -109,9 +107,14 @@ public class AvatarGenerationService {
                         "Product image is missing: " + item.getProduct().getId()
                 );
             }
-            imageUrls.add(toPublicUrl(productImageUrl));
+            referenceProducts.add(new AvatarReferenceProduct(
+                    toPublicUrl(productImageUrl),
+                    item.getProduct().getCategory().getCode(),
+                    item.getProduct().getSubCategory(),
+                    item.getProduct().getName()
+            ));
         }
-        return imageUrls;
+        return referenceProducts;
     }
 
     private String toPublicUrl(String imageUrl) {

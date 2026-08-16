@@ -1,6 +1,7 @@
 package likelion.mcmshowcase.avatar.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import likelion.mcmshowcase.avatar.dto.AvatarReferenceProduct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -16,18 +17,38 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
 @Slf4j
 public class FluxClient {
 
-    private static final String PROMPT = """
-            Use the first image as the base avatar.
-            Dress the avatar using the fashion products shown in the reference images.
-            Preserve the avatar's face, body proportions, pose and overall appearance.
-            Apply the clothing and accessories naturally.
-            Generate a clean full-body fashion styling image.
+    private static final String PROMPT_PREFIX = """
+            Use image 1 as the base avatar.
+
+            Keep the avatar's face, hairstyle, body shape, pose, proportions, and overall identity unchanged.
+            Create a clean, stylish, realistic full-body fashion look using the referenced products.
+
+            Apply the referenced products exactly as follows:
+            """;
+
+    private static final String PROMPT_SUFFIX = """
+
+            Important instructions:
+            - Use each referenced product exactly once.
+            - Preserve the original color, material, silhouette, logo, pattern, proportions, and design details of each referenced product.
+            - Do not invent additional clothing, bags, shoes, or accessories.
+            - Do not duplicate any referenced product.
+            - Do not replace a referenced product with a different design.
+            - Keep the avatar centered and fully visible from head to toe.
+            - Do not crop the head, hands, legs, or feet.
+            - Keep the original avatar pose and body proportions.
+            - Do not change the avatar's face or hairstyle.
+            - Make every referenced item look naturally worn or carried.
+            - Ensure every referenced product remains clearly visible.
+            - Avoid unnecessary overlap that hides important product details.
+            - Keep the background simple and clean.
             """;
 
     private final RestClient restClient;
@@ -62,19 +83,22 @@ public class FluxClient {
         this.maxPollingDuration = maxPollingDuration;
     }
 
-    public String generateAvatar(List<String> imageUrls) {
+    public String generateAvatar(
+            String baseAvatarUrl,
+            List<AvatarReferenceProduct> referenceProducts
+    ) {
         validateConfiguration();
         log.info(
                 "Submitting FLUX request. endpoint={}, imageCount={}, images={}",
                 modelPath,
-                imageUrls.size(),
-                imageUrls
+                referenceProducts.size() + 1,
+                referenceProducts.stream().map(AvatarReferenceProduct::imageUrl).toList()
         );
         try {
             FluxSubmitResponse submitResponse = restClient.post()
                     .uri(modelPath)
                     .header("x-key", apiKey)
-                    .body(createRequestBody(imageUrls))
+                    .body(createRequestBody(baseAvatarUrl, referenceProducts))
                     .retrieve()
                     .body(FluxSubmitResponse.class);
             if (submitResponse == null
@@ -175,15 +199,85 @@ public class FluxClient {
                 HttpStatus.GATEWAY_TIMEOUT, "FLUX image generation timed out");
     }
 
-    private Map<String, Object> createRequestBody(List<String> imageUrls) {
+    Map<String, Object> createRequestBody(
+            String baseAvatarUrl,
+            List<AvatarReferenceProduct> referenceProducts
+    ) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("prompt", PROMPT);
+        body.put("prompt", buildPrompt(referenceProducts));
         body.put("output_format", "png");
-        for (int index = 0; index < imageUrls.size(); index++) {
-            String fieldName = index == 0 ? "input_image" : "input_image_" + (index + 1);
-            body.put(fieldName, imageUrls.get(index));
+        body.put("input_image", baseAvatarUrl);
+        for (int index = 0; index < referenceProducts.size(); index++) {
+            int imageNumber = index + 2;
+            body.put("input_image_" + imageNumber, referenceProducts.get(index).imageUrl());
         }
         return body;
+    }
+
+    String buildPrompt(List<AvatarReferenceProduct> referenceProducts) {
+        StringBuilder prompt = new StringBuilder(PROMPT_PREFIX);
+        for (int index = 0; index < referenceProducts.size(); index++) {
+            prompt.append(buildProductInstruction(index + 2, referenceProducts.get(index)))
+                    .append('\n');
+        }
+        return prompt.append(PROMPT_SUFFIX).toString();
+    }
+
+    private String buildProductInstruction(int imageNumber, AvatarReferenceProduct product) {
+        String prefix = "- image " + imageNumber + ": ";
+        String category = normalize(product.category());
+        String subCategory = normalize(product.subCategory());
+
+        return prefix + switch (category) {
+            case "TOP" -> "wear this exact product as the upper-body garment";
+            case "BOTTOM" -> "wear this exact product as the lower-body garment";
+            case "SHOES" -> "wear these exact shoes naturally on both feet";
+            case "BAG" -> buildBagInstruction(subCategory);
+            case "ACCESSORIES" -> buildAccessoryInstruction(subCategory);
+            default -> "incorporate this exact product naturally into the outfit "
+                    + "in a position appropriate for its design";
+        };
+    }
+
+    private String buildBagInstruction(String subCategory) {
+        if (subCategory.contains("BACKPACK")) {
+            return "wear this exact backpack naturally on the back using both shoulder straps";
+        }
+        if (subCategory.contains("CROSSBODY")) {
+            return "wear this exact crossbody bag diagonally across the torso";
+        }
+        if (subCategory.contains("SHOULDER")) {
+            return "carry this exact shoulder bag naturally on one shoulder";
+        }
+        if (subCategory.contains("TOTE")) {
+            return "carry this exact tote bag naturally in one hand or over one arm";
+        }
+        if (subCategory.contains("CLUTCH")) {
+            return "hold this exact clutch naturally in one hand";
+        }
+        return "carry this exact bag naturally in a way appropriate for its design";
+    }
+
+    private String buildAccessoryInstruction(String subCategory) {
+        if (subCategory.contains("HAT")
+                || subCategory.contains("CAP")
+                || subCategory.contains("HEADWEAR")) {
+            return "wear this exact accessory naturally on the head";
+        }
+        if (subCategory.contains("BELT")) {
+            return "wear this exact belt naturally around the waist";
+        }
+        if (subCategory.contains("NECKLACE")) {
+            return "wear this exact accessory naturally around the neck";
+        }
+        if (subCategory.contains("SUNGLASSES") || subCategory.contains("EYEWEAR")) {
+            return "wear this exact accessory naturally on the face";
+        }
+        return "wear this exact accessory in the most appropriate natural position for its design";
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
     }
 
     private static SimpleClientHttpRequestFactory createRequestFactory(
