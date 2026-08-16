@@ -11,7 +11,6 @@ import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.member.entity.Member;
-import likelion.mcmshowcase.member.repository.MemberPurchaseRepository;
 import likelion.mcmshowcase.member.repository.MemberWishlistRepository;
 import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
@@ -54,7 +53,6 @@ public class RecommendationService {
     private final ArInteractionRepository arInteractionRepository;
     private final ProductRepository productRepository;
     private final ZoneInteractionRepository zoneInteractionRepository;
-    private final MemberPurchaseRepository memberPurchaseRepository;
     private final MemberWishlistRepository memberWishlistRepository;
     private final PythonRecommendationClient pythonRecommendationClient;
     private final StyleProfileRepository styleProfileRepository;
@@ -342,18 +340,10 @@ public class RecommendationService {
             return List.of();
         }
 
-        List<PythonInitialPreferenceRequest.MemberInteraction> purchases =
-                memberPurchaseRepository.findByMemberOrderByPurchasedAtAsc(member).stream()
-                        .map(purchase -> new PythonInitialPreferenceRequest.MemberInteraction(
-                                purchase.getProduct().getId(), "PURCHASE"))
-                        .toList();
-        List<PythonInitialPreferenceRequest.MemberInteraction> wishlists =
-                memberWishlistRepository.findByMemberOrderByCreatedAtAsc(member).stream()
-                        .map(wishlist -> new PythonInitialPreferenceRequest.MemberInteraction(
-                                wishlist.getProduct().getId(), "WISHLIST"))
-                        .toList();
-
-        return java.util.stream.Stream.concat(purchases.stream(), wishlists.stream()).toList();
+        return memberWishlistRepository.findByMemberOrderByCreatedAtAsc(member).stream()
+                .map(wishlist -> new PythonInitialPreferenceRequest.MemberInteraction(
+                        wishlist.getProduct().getId(), "WISHLIST"))
+                .toList();
     }
 
     private RecommendedProductResponse toResponse(Product product, Double score) {
