@@ -1,6 +1,7 @@
 package likelion.mcmshowcase.closet.service;
 
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
+import likelion.mcmshowcase.ar.entity.ArInteraction;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.closet.dto.*;
@@ -19,8 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.LinkedHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -74,32 +74,43 @@ public class MyClosetService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "StyleProfile not found: " + styleProfileId));
 
+        List<ArInteraction> arInteractions = arInteractionRepository
+                .findByArSessionOrderBySequenceNoAsc(styleProfile.getArSession());
+        Map<Long, Boolean> wishlistStatusByProductId = new LinkedHashMap<>();
+        arInteractions.stream()
+                .filter(interaction -> interaction.getProduct() != null)
+                .filter(interaction -> interaction.getInteractionType()
+                        == ArInteractionType.WISHLIST_ADD
+                        || interaction.getInteractionType() == ArInteractionType.WISHLIST_REMOVE)
+                .forEach(interaction -> wishlistStatusByProductId.put(
+                        interaction.getProduct().getId(),
+                        interaction.getInteractionType() == ArInteractionType.WISHLIST_ADD
+                ));
+
         List<MyClosetProductResponse> todayLookProducts = todayLookRepository
                 .findTopByStyleProfileOrderByCreatedAtDesc(styleProfile)
                 .map(todayLook -> todayLookItemRepository
                         .findByTodayLookOrderByDisplayOrderAsc(todayLook)
                         .stream()
-                        .map(item -> toProductResponse(item.getProduct()))
+                        .map(item -> toProductResponse(
+                                item.getProduct(), wishlistStatusByProductId))
                         .toList())
                 .orElseGet(List::of);
 
-        List<MyClosetProductResponse> fittingHistory = arInteractionRepository
-                .findByArSessionAndInteractionTypeOrderBySequenceNoAsc(
-                        styleProfile.getArSession(), ArInteractionType.PRODUCT_SELECT)
-                .stream()
+        List<MyClosetProductResponse> fittingHistory = arInteractions.stream()
+                .filter(interaction -> interaction.getInteractionType()
+                        == ArInteractionType.PRODUCT_SELECT)
                 .filter(interaction -> interaction.getProduct() != null)
-                .map(interaction -> interaction.getProduct())
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toMap(
-                                Product::getId,
-                                Function.identity(),
+                .collect(java.util.stream.Collectors.collectingAndThen(
+                        java.util.stream.Collectors.toMap(
+                                interaction -> interaction.getProduct().getId(),
+                                ArInteraction::getProduct,
                                 (first, ignored) -> first,
-                                LinkedHashMap::new
-                        ),
+                                LinkedHashMap::new),
                         productsById -> productsById.values().stream()
-                                .map(this::toProductResponse)
-                                .toList()
-                ));
+                                .map(product -> toProductResponse(
+                                        product, wishlistStatusByProductId))
+                                .toList()));
 
         return new MyClosetDetailResponse(
                 styleProfile.getId(),
@@ -116,13 +127,17 @@ public class MyClosetService {
                         HttpStatus.NOT_FOUND, "Member not found: " + memberId));
     }
 
-    private MyClosetProductResponse toProductResponse(Product product) {
+    private MyClosetProductResponse toProductResponse(
+            Product product,
+            Map<Long, Boolean> wishlistStatusByProductId
+    ) {
         return new MyClosetProductResponse(
                 product.getId(),
                 product.getName(),
                 product.getPrice(),
                 product.getImageUrl(),
-                product.getProductUrl()
+                product.getProductUrl(),
+                wishlistStatusByProductId.getOrDefault(product.getId(), false)
         );
     }
 }

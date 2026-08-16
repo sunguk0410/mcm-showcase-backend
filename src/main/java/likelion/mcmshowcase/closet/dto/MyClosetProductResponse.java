@@ -7,6 +7,7 @@ public record MyClosetProductResponse(
         String name,
         BigDecimal price,
         String imageUrl,
-        String productUrl
+        String productUrl,
+        boolean isWishlisted
 ) {
 }
