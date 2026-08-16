@@ -15,9 +15,6 @@ import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.product.entity.Product;
-import likelion.mcmshowcase.metaverse.entity.Avatar;
-import likelion.mcmshowcase.metaverse.entity.AvatarPreset;
-import likelion.mcmshowcase.metaverse.repository.AvatarRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,7 +41,6 @@ class MyClosetServiceTest {
     @Mock TodayLookItemRepository todayLookItemRepository;
     @Mock ArInteractionRepository arInteractionRepository;
     @Mock ArSessionRepository arSessionRepository;
-    @Mock AvatarRepository avatarRepository;
     @InjectMocks MyClosetService myClosetService;
 
     @Test
@@ -193,32 +189,12 @@ class MyClosetServiceTest {
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(styleProfileRepository.findByArSessionMemberOrderByCreatedAtDesc(member))
                 .thenReturn(List.of(styleProfile));
-        Avatar avatar = Avatar.create(
-                styleProfile, mock(AvatarPreset.class), "/images/avatar-7.png", LocalDateTime.now());
-        when(avatarRepository.findByStyleProfileInOrderByCreatedAtDesc(List.of(styleProfile)))
-                .thenReturn(List.of(avatar));
-
         var response = myClosetService.getMyCloset(1L);
 
         assertEquals(List.of(7L), response.items().stream()
                 .map(item -> item.styleProfileId())
                 .toList());
-        assertEquals("/images/avatar-7.png", response.items().get(0).avatarImageUrl());
-    }
-
-    @Test
-    void closetItemReturnsNullWhenAvatarIsNotConnected() {
-        Member member = member(1L);
-        StyleProfile styleProfile = styleProfile(7L, arSession(34L));
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
-        when(styleProfileRepository.findByArSessionMemberOrderByCreatedAtDesc(member))
-                .thenReturn(List.of(styleProfile));
-        when(avatarRepository.findByStyleProfileInOrderByCreatedAtDesc(List.of(styleProfile)))
-                .thenReturn(List.of());
-
-        var response = myClosetService.getMyCloset(1L);
-
-        assertNull(response.items().get(0).avatarImageUrl());
+        assertEquals("/images/avatars/female.png", response.items().get(0).avatarImageUrl());
     }
 
     private StyleProfile styleProfile(Long id, ArSession arSession) {
