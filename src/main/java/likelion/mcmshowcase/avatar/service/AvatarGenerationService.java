@@ -1,6 +1,7 @@
 package likelion.mcmshowcase.avatar.service;
 
 import likelion.mcmshowcase.avatar.client.FluxClient;
+import likelion.mcmshowcase.avatar.client.PythonImageClient;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.entity.TodayLookItem;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
@@ -8,6 +9,7 @@ import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.global.url.ImageUrlResolver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AvatarGenerationService {
 
     private static final int MAX_REFERENCE_IMAGES = 8;
@@ -34,6 +37,7 @@ public class AvatarGenerationService {
     private final TodayLookItemRepository todayLookItemRepository;
     private final ImageUrlResolver imageUrlResolver;
     private final FluxClient fluxClient;
+    private final PythonImageClient pythonImageClient;
 
     @Value("${flux.generated-image-directory:/app/images/generated}")
     private String generatedImageDirectory;
@@ -65,13 +69,30 @@ public class AvatarGenerationService {
         }
 
         List<String> publicImageUrls = createPublicImageUrls(styleProfile, items);
-        String temporaryImageUrl = fluxClient.generateAvatar(publicImageUrls);
-        byte[] generatedImage = fluxClient.downloadGeneratedImage(temporaryImageUrl);
+        String fluxImageUrl = fluxClient.generateAvatar(publicImageUrls);
+        String finalImageUrl = removeBackgroundOrUseOriginal(fluxImageUrl);
+        byte[] generatedImage = fluxClient.downloadGeneratedImage(finalImageUrl);
         String relativeImageUrl = saveGeneratedImage(styleProfileId, generatedImage);
 
         styleProfile.updateAvatarImageUrl(relativeImageUrl);
         styleProfileRepository.save(styleProfile);
         return relativeImageUrl;
+    }
+
+    private String removeBackgroundOrUseOriginal(String fluxImageUrl) {
+        try {
+            log.info("Avatar background removal started. imageUrl={}", fluxImageUrl);
+            String transparentImageUrl = pythonImageClient.removeBackground(fluxImageUrl);
+            log.info("Avatar background removal completed. imageUrl={}", transparentImageUrl);
+            return transparentImageUrl;
+        } catch (RuntimeException exception) {
+            log.warn(
+                    "Avatar background removal failed. Using original FLUX image. imageUrl={}",
+                    fluxImageUrl,
+                    exception
+            );
+            return fluxImageUrl;
+        }
     }
 
     private List<String> createPublicImageUrls(
