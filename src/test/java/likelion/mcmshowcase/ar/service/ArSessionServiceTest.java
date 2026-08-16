@@ -4,6 +4,7 @@ import likelion.mcmshowcase.ar.dto.ArSessionMemberRequest;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
+import likelion.mcmshowcase.global.enums.Gender;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.recommendation.service.RecommendationService;
@@ -57,6 +58,52 @@ class ArSessionServiceTest {
             TransactionSynchronizationManager.getSynchronizations().forEach(
                     TransactionSynchronization::afterCommit);
             verify(recommendationService).initializePreferences(34L);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void memberGenderIsAppliedWhenArSessionGenderIsNull() {
+        assertGenderAfterMemberMapping(null, Gender.FEMALE, Gender.FEMALE);
+    }
+
+    @Test
+    void memberGenderOverridesExistingArSessionGender() {
+        assertGenderAfterMemberMapping(Gender.FEMALE, Gender.MALE, Gender.MALE);
+    }
+
+    @Test
+    void existingArSessionGenderIsKeptWhenMemberGenderIsNull() {
+        assertGenderAfterMemberMapping(Gender.FEMALE, null, Gender.FEMALE);
+    }
+
+    @Test
+    void nullArSessionGenderIsKeptWhenMemberGenderIsNull() {
+        assertGenderAfterMemberMapping(null, null, null);
+    }
+
+    private void assertGenderAfterMemberMapping(
+            Gender arSessionGender,
+            Gender memberGender,
+            Gender expectedGender
+    ) {
+        ArSession arSession = ArSession.create(LocalDateTime.now());
+        ReflectionTestUtils.setField(arSession, "id", 34L);
+        if (arSessionGender != null) {
+            arSession.setGender(arSessionGender);
+        }
+        Member member = mock(Member.class);
+        when(member.getId()).thenReturn(1L);
+        when(member.getGender()).thenReturn(memberGender);
+        when(arSessionRepository.findById(34L)).thenReturn(Optional.of(arSession));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(arSessionRepository.save(arSession)).thenReturn(arSession);
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            arSessionService.mapMember(34L, new ArSessionMemberRequest(1L));
+            assertEquals(expectedGender, arSession.getGender());
         } finally {
             TransactionSynchronizationManager.clearSynchronization();
         }

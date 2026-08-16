@@ -75,6 +75,9 @@ public class ArSessionService {
         }
 
         arSession.mapMember(member);
+        if (member.getGender() != null) {
+            arSession.setGender(member.getGender());
+        }
         ArSession savedArSession = arSessionRepository.save(arSession);
         initializePreferencesAfterCommit(savedArSession.getId());
         return new ArSessionMemberResponse(savedArSession.getId(), member.getId());
