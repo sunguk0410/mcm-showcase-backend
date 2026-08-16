@@ -20,8 +20,8 @@ public class PythonImageClient {
     public PythonImageClient(
             RestClient.Builder restClientBuilder,
             @Value("${recommendation.python.base-url}") String baseUrl,
-            @Value("${recommendation.python.connect-timeout:2s}") Duration connectTimeout,
-            @Value("${recommendation.python.read-timeout:5s}") Duration readTimeout
+            @Value("${recommendation.python.image-connect-timeout:5s}") Duration connectTimeout,
+            @Value("${recommendation.python.image-read-timeout:60s}") Duration readTimeout
     ) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(connectTimeout);
