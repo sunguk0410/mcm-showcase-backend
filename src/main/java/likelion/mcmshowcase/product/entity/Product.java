@@ -19,6 +19,9 @@ public class Product {
     @Column(name = "name", length = 255, nullable = false)
     private String name;
 
+    @Column(name = "name_en", length = 255)
+    private String nameEn;
+
     @Column(name = "gender", length = 20, nullable = false)
     private String gender;
 

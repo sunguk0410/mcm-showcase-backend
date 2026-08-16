@@ -24,6 +24,7 @@ public class ProductService {
         return new ProductDetailResponse(
                 product.getId(),
                 product.getName(),
+                product.getNameEn(),
                 product.getPrice(),
                 product.getColor(),
                 product.getImageUrl()

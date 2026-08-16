@@ -134,6 +134,7 @@ public class MyClosetService {
         return new MyClosetProductResponse(
                 product.getId(),
                 product.getName(),
+                product.getNameEn(),
                 product.getPrice(),
                 product.getImageUrl(),
                 product.getProductUrl(),

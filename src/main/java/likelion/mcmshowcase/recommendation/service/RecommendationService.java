@@ -351,6 +351,7 @@ public class RecommendationService {
                 product.getId(),
                 product.getProductCode(),
                 product.getName(),
+                product.getNameEn(),
                 product.getCategory().getCode(),
                 product.getPrice(),
                 product.getImageUrl(),

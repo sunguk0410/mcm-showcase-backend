@@ -94,6 +94,14 @@ class MyClosetServiceTest {
         assertEquals(List.of(true, false, false), response.fittingHistory().stream()
                 .map(product -> product.isWishlisted())
                 .toList());
+        assertEquals(List.of("Product 51 EN", "Product 52 EN", "Product 53 EN"),
+                response.todayLook().products().stream()
+                        .map(product -> product.nameEn())
+                        .toList());
+        assertEquals(List.of("Product 51 EN", "Product 52 EN", "Product 53 EN"),
+                response.fittingHistory().stream()
+                        .map(product -> product.nameEn())
+                        .toList());
         verify(arInteractionRepository, times(1))
                 .findByArSessionOrderBySequenceNoAsc(arSession);
         verify(arInteractionRepository, never())
@@ -216,6 +224,7 @@ class MyClosetServiceTest {
         Product product = mock(Product.class);
         when(product.getId()).thenReturn(id);
         when(product.getName()).thenReturn("Product " + id);
+        when(product.getNameEn()).thenReturn("Product " + id + " EN");
         when(product.getPrice()).thenReturn(BigDecimal.valueOf(1000));
         when(product.getImageUrl()).thenReturn("/images/" + id + ".png");
         when(product.getProductUrl()).thenReturn("https://example.com/products/" + id);
