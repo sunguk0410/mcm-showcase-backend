@@ -12,6 +12,8 @@ import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.product.entity.Product;
+import likelion.mcmshowcase.metaverse.entity.Avatar;
+import likelion.mcmshowcase.metaverse.repository.AvatarRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class MyClosetService {
     private final TodayLookItemRepository todayLookItemRepository;
     private final ArInteractionRepository arInteractionRepository;
     private final ArSessionRepository arSessionRepository;
+    private final AvatarRepository avatarRepository;
 
     @Transactional
     public MyClosetMemberLinkResponse linkMember(
@@ -56,12 +61,26 @@ public class MyClosetService {
     @Transactional(readOnly = true)
     public MyClosetListResponse getMyCloset(Long memberId) {
         Member member = findMember(memberId);
-        List<MyClosetListItemResponse> items = styleProfileRepository
-                .findByArSessionMemberOrderByCreatedAtDesc(member)
+        List<StyleProfile> styleProfiles = styleProfileRepository
+                .findByArSessionMemberOrderByCreatedAtDesc(member);
+        List<Avatar> avatars = styleProfiles.isEmpty()
+                ? List.of()
+                : avatarRepository.findByStyleProfileInOrderByCreatedAtDesc(styleProfiles);
+        Map<Long, Avatar> latestAvatarByStyleProfileId = avatars
                 .stream()
+                .collect(Collectors.toMap(
+                        avatar -> avatar.getStyleProfile().getId(),
+                        Function.identity(),
+                        (latest, ignored) -> latest,
+                        LinkedHashMap::new
+                ));
+        List<MyClosetListItemResponse> items = styleProfiles.stream()
                 .map(styleProfile -> new MyClosetListItemResponse(
                         styleProfile.getId(),
                         styleProfile.getStyleIdentityTitle(),
+                        java.util.Optional.ofNullable(latestAvatarByStyleProfileId.get(styleProfile.getId()))
+                                .map(Avatar::getImageUrl)
+                                .orElse(null),
                         styleProfile.getCreatedAt()
                 ))
                 .toList();
