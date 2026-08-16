@@ -11,7 +11,10 @@ import likelion.mcmshowcase.ar.dto.ArSessionMemberRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberStatusResponse;
 import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
+import likelion.mcmshowcase.ar.dto.ArMessageEvaluateResponse;
+import likelion.mcmshowcase.ar.service.ArMessageService;
 import likelion.mcmshowcase.ar.service.ArSessionService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class ArSessionController {
 
     private final ArSessionService arSessionService;
+    private final ArMessageService arMessageService;
+
+    @Operation(
+            summary = "개인화 AR Message Trigger 평가",
+            description = """
+                    현재 AR Session의 FITTING 행동을 분석하여 개인화 AR Message Trigger를 평가합니다.
+
+                    Priority:
+                    FIRST_FITTING > ZONE_INTEREST > CATEGORY_EXPANSION > CATEGORY_SWITCH
+                    """
+    )
+    @PostMapping("/{arSessionId}/messages/evaluate")
+    public ResponseEntity<ArMessageEvaluateResponse> evaluateMessage(@PathVariable Long arSessionId) {
+        return ResponseEntity.ok(arMessageService.evaluate(arSessionId));
+    }
 
     @GetMapping("/{arSessionId}")
     public ResponseEntity<ArSessionMemberStatusResponse> getMemberStatus(
