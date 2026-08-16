@@ -76,6 +76,7 @@ public class ArSessionService {
 
         arSession.mapMember(member);
         ArSession savedArSession = arSessionRepository.save(arSession);
+        initializePreferencesAfterCommit(savedArSession.getId());
         return new ArSessionMemberResponse(savedArSession.getId(), member.getId());
     }
 
@@ -186,7 +187,8 @@ public class ArSessionService {
         arSession.mapCustomerSession(customerSession);
         ArSession savedArSession = arSessionRepository.save(arSession);
 
-        if (zoneInteractionRepository.existsByCustomerSession(customerSession)) {
+        if (zoneInteractionRepository.existsByCustomerSession(customerSession)
+                || savedArSession.getMember() != null) {
             initializePreferencesAfterCommit(savedArSession.getId());
         }
 

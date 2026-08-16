@@ -15,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -43,10 +45,20 @@ class ArSessionServiceTest {
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(arSessionRepository.save(arSession)).thenReturn(arSession);
 
-        var response = arSessionService.mapMember(34L, new ArSessionMemberRequest(1L));
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            var response = arSessionService.mapMember(34L, new ArSessionMemberRequest(1L));
 
-        assertEquals(34L, response.arSessionId());
-        assertEquals(1L, response.memberId());
-        verify(arSessionRepository).save(arSession);
+            assertEquals(34L, response.arSessionId());
+            assertEquals(1L, response.memberId());
+            verify(arSessionRepository).save(arSession);
+            verifyNoInteractions(recommendationService);
+
+            TransactionSynchronizationManager.getSynchronizations().forEach(
+                    TransactionSynchronization::afterCommit);
+            verify(recommendationService).initializePreferences(34L);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 }

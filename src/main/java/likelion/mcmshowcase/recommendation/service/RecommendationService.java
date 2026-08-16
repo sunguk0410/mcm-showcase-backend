@@ -10,6 +10,9 @@ import likelion.mcmshowcase.closet.entity.TodayLookItem;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookRepository;
+import likelion.mcmshowcase.member.entity.Member;
+import likelion.mcmshowcase.member.repository.MemberPurchaseRepository;
+import likelion.mcmshowcase.member.repository.MemberWishlistRepository;
 import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
 import likelion.mcmshowcase.recommendation.client.PythonRecommendationClient;
@@ -51,6 +54,8 @@ public class RecommendationService {
     private final ArInteractionRepository arInteractionRepository;
     private final ProductRepository productRepository;
     private final ZoneInteractionRepository zoneInteractionRepository;
+    private final MemberPurchaseRepository memberPurchaseRepository;
+    private final MemberWishlistRepository memberWishlistRepository;
     private final PythonRecommendationClient pythonRecommendationClient;
     private final StyleProfileRepository styleProfileRepository;
     private final TodayLookRepository todayLookRepository;
@@ -218,15 +223,18 @@ public class RecommendationService {
         ArSession arSession = findArSession(arSessionId);
         List<PythonInitialPreferenceRequest.ZoneInteraction> zoneInteractions =
                 getZoneInteractions(arSession);
-        if (zoneInteractions.isEmpty()) {
+        List<PythonInitialPreferenceRequest.MemberInteraction> memberInteractions =
+                getMemberInteractions(arSession);
+        if (zoneInteractions.isEmpty() && memberInteractions.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "ZoneInteraction not found for ArSession: " + arSessionId
+                    "Recommendation preference data not found for ArSession: " + arSessionId
             );
         }
 
         pythonRecommendationClient.initializePreferences(
-                new PythonInitialPreferenceRequest(arSessionId, zoneInteractions)
+                new PythonInitialPreferenceRequest(
+                        arSessionId, zoneInteractions, memberInteractions)
         );
     }
 
@@ -299,10 +307,7 @@ public class RecommendationService {
             ArSession arSession
     ) {
         if (arSession.getCustomerSession() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "CustomerSession is not mapped to ArSession: " + arSession.getId()
-            );
+            return List.of();
         }
 
         Map<ZoneCategoryKey, Long> dwellSecondsByZoneCategory = new LinkedHashMap<>();
@@ -327,6 +332,28 @@ public class RecommendationService {
                         entry.getValue()
                 ))
                 .toList();
+    }
+
+    private List<PythonInitialPreferenceRequest.MemberInteraction> getMemberInteractions(
+            ArSession arSession
+    ) {
+        Member member = arSession.getMember();
+        if (member == null) {
+            return List.of();
+        }
+
+        List<PythonInitialPreferenceRequest.MemberInteraction> purchases =
+                memberPurchaseRepository.findByMemberOrderByPurchasedAtAsc(member).stream()
+                        .map(purchase -> new PythonInitialPreferenceRequest.MemberInteraction(
+                                purchase.getProduct().getId(), "PURCHASE"))
+                        .toList();
+        List<PythonInitialPreferenceRequest.MemberInteraction> wishlists =
+                memberWishlistRepository.findByMemberOrderByCreatedAtAsc(member).stream()
+                        .map(wishlist -> new PythonInitialPreferenceRequest.MemberInteraction(
+                                wishlist.getProduct().getId(), "WISHLIST"))
+                        .toList();
+
+        return java.util.stream.Stream.concat(purchases.stream(), wishlists.stream()).toList();
     }
 
     private RecommendedProductResponse toResponse(Product product, Double score) {
