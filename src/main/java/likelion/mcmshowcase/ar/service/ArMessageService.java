@@ -31,7 +31,8 @@ public class ArMessageService {
             "ACCESSORIES", List.of("BAG", "TOP", "SHOES", "BOTTOM")
     );
 
-    private static final Map<String, List<Message>> MESSAGES = buildMessages();
+    private static final Map<String, List<Message>> KOREAN_MESSAGES = buildMessages();
+    private static final Map<String, List<Message>> ENGLISH_MESSAGES = buildEnglishMessages();
 
     private final ArSessionRepository arSessionRepository;
     private final ArInteractionRepository arInteractionRepository;
@@ -39,6 +40,11 @@ public class ArMessageService {
 
     @Transactional
     public ArMessageEvaluateResponse evaluate(Long arSessionId) {
+        return evaluate(arSessionId, Locale.KOREAN);
+    }
+
+    @Transactional
+    public ArMessageEvaluateResponse evaluate(Long arSessionId, Locale locale) {
         ArSession session = arSessionRepository.findByIdForUpdate(arSessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "ArSession not found: " + arSessionId));
@@ -57,7 +63,7 @@ public class ArMessageService {
         if (candidate == null) candidate = evaluateCategorySwitch(fittings, histories);
         if (candidate == null) return ArMessageEvaluateResponse.notTriggered();
 
-        Message selected = selectRandomMessage(candidate.messageKey());
+        Message selected = selectRandomMessage(candidate.messageKey(), locale);
         ArMessageHistory saved = historyRepository.save(ArMessageHistory.create(
                 session, candidate.triggerType(), candidate.zone(), candidate.interestLevel(),
                 candidate.targetCategory(), selected.id(), selected.text(), fittings.size(), LocalDateTime.now()));
@@ -131,8 +137,10 @@ public class ArMessageService {
         return histories.isEmpty() || currentFittingSequenceNo - histories.get(histories.size() - 1).getFittingSequenceNo() >= 2;
     }
 
-    private Message selectRandomMessage(String key) {
-        List<Message> messages = MESSAGES.get(key);
+    private Message selectRandomMessage(String key, Locale locale) {
+        Map<String, List<Message>> messagesByKey = locale != null && "en".equalsIgnoreCase(locale.getLanguage())
+                ? ENGLISH_MESSAGES : KOREAN_MESSAGES;
+        List<Message> messages = messagesByKey.get(key);
         return messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
     }
 
@@ -164,6 +172,28 @@ public class ArMessageService {
         put(map, "SWITCH_BOTTOM", "SWITCH_BOTTOM", "이번에는 하의에서 또 다른 스타일을 발견해보세요.|이제 하의로 시선을 옮겨 새로운 조합을 만나보세요.|새로운 하의에서 오늘의 또 다른 무드를 찾아보세요.|이번에는 하의 카테고리에서 새로운 스타일을 탐색해보세요.|하의로 탐색을 이어가며 또 다른 MCM 스타일을 만나보세요.");
         put(map, "SWITCH_SHOES", "SWITCH_SHOES", "이번에는 슈즈에서 새로운 감각을 만나보세요.|이제 슈즈로 시선을 옮겨 새로운 스타일을 발견해보세요.|새로운 슈즈에서 오늘의 또 다른 무드를 찾아보세요.|이번에는 슈즈 카테고리에서 새로운 MCM 스타일을 만나보세요.|슈즈로 탐색을 이어가며 마음에 드는 감각을 발견해보세요.");
         put(map, "SWITCH_ACC", "SWITCH_ACC", "이번에는 새로운 디테일에 시선을 옮겨보세요.|액세서리에서 오늘의 또 다른 감각을 발견해보세요.|이제 새로운 액세서리로 스타일의 디테일을 더해보세요.|이번에는 액세서리 카테고리에서 새로운 무드를 만나보세요.|작은 디테일에서도 새로운 MCM 스타일을 발견해보세요.");
+        return Map.copyOf(map);
+    }
+
+    private static Map<String, List<Message>> buildEnglishMessages() {
+        Map<String, List<Message>> map = new HashMap<>();
+        put(map, "FIRST", "FIRST", "Discover the MCM style that feels made for you today.|Let's find the style that catches your eye right now.|Start today's journey with a fresh MCM look.|Find your signature style and begin a new journey.|Meet a new style that matches your mood today.|Discover a fresh look made for who you are right now.|Find your own MCM look among a world of new styles.|Your personal style journey starts here.|Express yourself today with a fresh new look.|See what kind of style is waiting for you today.");
+        put(map, "TRAVEL_M", "TRAVEL_M", "You seem naturally drawn to the Travel collection today.|Your choices are beginning to reveal a Travel-inspired mood.|Your selections show a growing interest in the Travel collection.|The Travel mood is starting to stand out in your choices today.|Today's picks pair naturally with the spirit of the Travel collection.");
+        put(map, "TRAVEL_S", "TRAVEL_S", "The Travel collection keeps appearing in your choices. Explore a few more styles you may love.|Take a closer look at more Travel styles that catch your eye.|Build today's look around the Travel pieces you keep coming back to.|The Travel mood clearly stands out in your choices today. Keep exploring that feeling.|Your repeated picks reveal a strong Travel mood. Discover another Travel style.");
+        put(map, "CLASSIC_M", "CLASSIC_M", "You seem naturally drawn to MCM's Classic collection today.|Your choices are beginning to reveal a Classic mood.|MCM's iconic style is starting to stand out in your selections.|Your picks naturally reflect MCM's timeless Classic mood.|Today's choices are moving closer to MCM's signature Classic style.");
+        put(map, "CLASSIC_S", "CLASSIC_S", "MCM's Classic collection keeps appearing in your choices.|Explore more MCM Classic styles that catch your eye.|MCM's signature character keeps standing out in the pieces you choose.|MCM's iconic mood is becoming clear in your selections today.|Your repeated picks reveal a Classic mood. Discover another MCM signature style.");
+        put(map, "NEW_M", "NEW_M", "You seem naturally drawn to MCM's latest styles today.|New Collection pieces are beginning to stand out in your choices.|Your selections show a growing interest in MCM's newest mood.|Your choices are beginning to reveal the spirit of the New Collection.|Today's picks pair naturally with MCM's latest creative direction.");
+        put(map, "NEW_S", "NEW_S", "The New Collection keeps appearing in your choices. Explore more of the latest styles.|Take a closer look at more new MCM styles that catch your eye.|Build today's look around the New Collection pieces you keep returning to.|MCM's newest mood clearly stands out in your choices today. Keep exploring.|Your repeated picks reveal a love for new MCM styles. Discover another New Collection piece.");
+        put(map, "EXP_BAG", "EXP_BAG", "Discover a fresh mood among the bags you haven't explored yet.|Continue your journey with a new bag style.|Find a different MCM look by adding a new bag to your selection.|There may still be a bag style that is perfect for you.|Explore the bag collection and discover a fresh perspective.");
+        put(map, "EXP_TOP", "EXP_TOP", "Discover a fresh mood among the tops you haven't explored yet.|Continue your journey with a new top.|Find a different style by exploring the tops collection.|There may still be a top that is perfect for you.|Meet a new mood for today in the tops collection.");
+        put(map, "EXP_BOTTOM", "EXP_BOTTOM", "Discover a fresh style among the bottoms you haven't explored yet.|Continue your journey with a new bottom.|Complete today's look by exploring the bottoms collection.|Discover a fresh combination among the bottoms you haven't seen yet.|Meet a different MCM style in the bottoms collection.");
+        put(map, "EXP_SHOES", "EXP_SHOES", "Discover a fresh perspective among the shoes you haven't explored yet.|Continue your journey with the shoes collection.|Step into a different look with a new pair of shoes.|There may still be a shoe style that is perfect for you.|Explore the shoes collection and discover a fresh MCM perspective.");
+        put(map, "EXP_ACC", "EXP_ACC", "Discover a new detail among the accessories you haven't explored yet.|Continue your journey with a new accessory.|Add a fresh detail to today's look from the accessories collection.|There may still be an accessory that is perfect for you.|Complete your selection with a fresh touch from the accessories collection.");
+        put(map, "SWITCH_BAG", "SWITCH_BAG", "Discover a fresh mood in the bags collection.|Now that you've moved to bags, explore a new style.|Find a different perspective among our range of bags.|Discover a fresh MCM style in the bags collection.|Explore the bags and find the style that catches your eye.");
+        put(map, "SWITCH_TOP", "SWITCH_TOP", "Meet a fresh mood in the tops collection.|Now that you've moved to tops, discover a different style.|Find a new perspective for today among the latest tops.|Discover a fresh MCM look in the tops collection.|Explore the tops and find the style that catches your eye.");
+        put(map, "SWITCH_BOTTOM", "SWITCH_BOTTOM", "Discover a different style in the bottoms collection.|Now that you've moved to bottoms, explore a fresh combination.|Find a new mood for today among the latest bottoms.|Explore a fresh style in the bottoms collection.|Continue your journey through a different side of MCM with the bottoms collection.");
+        put(map, "SWITCH_SHOES", "SWITCH_SHOES", "Meet a fresh perspective in the shoes collection.|Now that you've moved to shoes, discover a new style.|Find a different mood for today among the latest shoes.|Discover a fresh MCM look in the shoes collection.|Explore the shoes and find the style that catches your eye.");
+        put(map, "SWITCH_ACC", "SWITCH_ACC", "Add a fresh detail to your selection.|Discover a different perspective in the accessories collection.|Complete your style with a new accessory.|Meet a fresh mood in the accessories collection.|Even the smallest detail can reveal a new MCM style.");
         return Map.copyOf(map);
     }
 

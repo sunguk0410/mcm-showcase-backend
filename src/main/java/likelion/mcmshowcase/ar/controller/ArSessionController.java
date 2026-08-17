@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Locale;
+
 @RestController
 @RequestMapping("/api/ar-sessions")
 @RequiredArgsConstructor
@@ -44,8 +46,11 @@ public class ArSessionController {
                     """
     )
     @PostMapping("/{arSessionId}/messages/evaluate")
-    public ResponseEntity<ArMessageEvaluateResponse> evaluateMessage(@PathVariable Long arSessionId) {
-        return ResponseEntity.ok(arMessageService.evaluate(arSessionId));
+    public ResponseEntity<ArMessageEvaluateResponse> evaluateMessage(
+            @PathVariable Long arSessionId,
+            Locale locale
+    ) {
+        return ResponseEntity.ok(arMessageService.evaluate(arSessionId, locale));
     }
 
     @GetMapping("/{arSessionId}")

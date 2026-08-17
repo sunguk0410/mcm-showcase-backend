@@ -17,6 +17,7 @@ import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,7 +40,7 @@ class ArMessageServiceTest {
     void setUp() {
         service = new ArMessageService(sessionRepository, interactionRepository, historyRepository);
         when(sessionRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(session));
-        when(interactionRepository.findByArSessionAndInteractionTypeOrderBySequenceNoAsc(session, ArInteractionType.FITTING))
+        when(interactionRepository.findByArSessionAndInteractionTypeOrderBySequenceNoAsc(session, ArInteractionType.PRODUCT_SELECT))
                 .thenAnswer(invocation -> List.copyOf(fittings));
         when(historyRepository.findByArSessionOrderByFittingSequenceNoAscIdAsc(session))
                 .thenAnswer(invocation -> List.copyOf(histories));
@@ -58,6 +59,16 @@ class ArMessageServiceTest {
         assertEquals(MessageTriggerType.FIRST_FITTING, first.triggerType());
         assertTrue(first.messageId().matches("FIRST_(0[1-9]|10)"));
         assertFalse(second.triggered());
+    }
+
+    @Test
+    void englishLocaleReturnsEnglishMessage() {
+        add(1, "BAG", "TRAVEL");
+
+        ArMessageEvaluateResponse response = service.evaluate(1L, Locale.ENGLISH);
+
+        assertEquals(MessageTriggerType.FIRST_FITTING, response.triggerType());
+        assertTrue(response.message().matches("[\\x00-\\x7F]+"));
     }
 
     @Test
