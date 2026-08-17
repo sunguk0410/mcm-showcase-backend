@@ -27,6 +27,7 @@ recommendation:
     read-timeout: ${RECOMMENDATION_PYTHON_READ_TIMEOUT:5s}
     image-connect-timeout: ${RECOMMENDATION_PYTHON_IMAGE_CONNECT_TIMEOUT:5s}
     image-read-timeout: ${RECOMMENDATION_PYTHON_IMAGE_READ_TIMEOUT:60s}
+    evaluation-read-timeout: ${RECOMMENDATION_PYTHON_EVALUATION_READ_TIMEOUT:60s}
 
 flux:
   api-key: ${BFL_API_KEY:}
