@@ -112,7 +112,7 @@ public class RecommendationService {
             stage = "python-avatar-look-request";
             log.info("Python avatar look request started. arSessionId={}", arSessionId);
             PythonAvatarLookResponse pythonResponse = pythonRecommendationClient.createAvatarLook(
-                    new PythonAvatarLookRequest(arSessionId)
+                    new PythonAvatarLookRequest(arSessionId, getArInteractions(arSession))
             );
             if (!arSessionId.equals(pythonResponse.arSessionId())) {
                 throw new ResponseStatusException(
