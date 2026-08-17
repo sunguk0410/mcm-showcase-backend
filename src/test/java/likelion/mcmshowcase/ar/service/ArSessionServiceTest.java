@@ -42,6 +42,7 @@ class ArSessionServiceTest {
         ReflectionTestUtils.setField(arSession, "id", 34L);
         Member member = mock(Member.class);
         when(member.getId()).thenReturn(1L);
+        when(member.getGender()).thenReturn(Gender.MALE);
         when(arSessionRepository.findById(34L)).thenReturn(Optional.of(arSession));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(arSessionRepository.save(arSession)).thenReturn(arSession);
@@ -52,6 +53,8 @@ class ArSessionServiceTest {
 
             assertEquals(34L, response.arSessionId());
             assertEquals(1L, response.memberId());
+            assertEquals(Gender.MALE, response.gender());
+            assertEquals(Gender.MALE, arSession.getGender());
             verify(arSessionRepository).save(arSession);
             verifyNoInteractions(recommendationService);
 

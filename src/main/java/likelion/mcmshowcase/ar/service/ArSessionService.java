@@ -80,7 +80,11 @@ public class ArSessionService {
         }
         ArSession savedArSession = arSessionRepository.save(arSession);
         initializePreferencesAfterCommit(savedArSession.getId());
-        return new ArSessionMemberResponse(savedArSession.getId(), member.getId());
+        return new ArSessionMemberResponse(
+                savedArSession.getId(),
+                member.getId(),
+                member.getGender()
+        );
     }
 
     @Transactional(readOnly = true)
