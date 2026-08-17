@@ -22,17 +22,32 @@ import java.time.Duration;
 public class PythonRecommendationClient {
 
     private final RestClient restClient;
+    private final RestClient avatarRestClient;
 
     public PythonRecommendationClient(
             RestClient.Builder restClientBuilder,
             @Value("${recommendation.python.base-url}") String baseUrl,
             @Value("${recommendation.python.connect-timeout:2s}") Duration connectTimeout,
-            @Value("${recommendation.python.read-timeout:5s}") Duration readTimeout
+            @Value("${recommendation.python.read-timeout:5s}") Duration readTimeout,
+            @Value("${recommendation.python.avatar-read-timeout:15s}")
+            Duration avatarReadTimeout
+    ) {
+        this.restClient = createRestClient(
+                restClientBuilder, baseUrl, connectTimeout, readTimeout);
+        this.avatarRestClient = createRestClient(
+                restClientBuilder, baseUrl, connectTimeout, avatarReadTimeout);
+    }
+
+    private RestClient createRestClient(
+            RestClient.Builder restClientBuilder,
+            String baseUrl,
+            Duration connectTimeout,
+            Duration readTimeout
     ) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(connectTimeout);
         requestFactory.setReadTimeout(readTimeout);
-        this.restClient = restClientBuilder
+        return restClientBuilder.clone()
                 .baseUrl(baseUrl)
                 .requestFactory(requestFactory)
                 .build();
@@ -85,7 +100,7 @@ public class PythonRecommendationClient {
 
     public PythonAvatarLookResponse createAvatarLook(PythonAvatarLookRequest request) {
         try {
-            PythonAvatarLookResponse response = restClient.post()
+            PythonAvatarLookResponse response = avatarRestClient.post()
                     .uri("/recommendations/avatar-look")
                     .body(request)
                     .retrieve()

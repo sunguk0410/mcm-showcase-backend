@@ -25,6 +25,7 @@ recommendation:
     base-url: ${RECOMMENDATION_PYTHON_BASE_URL:http://localhost:8000}
     connect-timeout: ${RECOMMENDATION_PYTHON_CONNECT_TIMEOUT:2s}
     read-timeout: ${RECOMMENDATION_PYTHON_READ_TIMEOUT:5s}
+    avatar-read-timeout: ${RECOMMENDATION_PYTHON_AVATAR_READ_TIMEOUT:15s}
     image-connect-timeout: ${RECOMMENDATION_PYTHON_IMAGE_CONNECT_TIMEOUT:5s}
     image-read-timeout: ${RECOMMENDATION_PYTHON_IMAGE_READ_TIMEOUT:60s}
     evaluation-read-timeout: ${RECOMMENDATION_PYTHON_EVALUATION_READ_TIMEOUT:60s}
