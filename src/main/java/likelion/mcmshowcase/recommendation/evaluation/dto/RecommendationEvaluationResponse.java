@@ -22,7 +22,7 @@ public record RecommendationEvaluationResponse(
             String personaId,
             String personaType,
             AnchorEvaluation anchorEvaluation,
-            CategoryEvaluation categoryEvaluation,
+            RankingEvaluation rankingEvaluation,
             ConfidenceEvaluation confidenceEvaluation
     ) {
     }
@@ -37,8 +37,7 @@ public record RecommendationEvaluationResponse(
     ) {
     }
 
-    public record CategoryEvaluation(
-            String category,
+    public record RankingEvaluation(
             double recallAt5,
             double ndcgAt5,
             List<RankedProduct> top5,
@@ -65,7 +64,7 @@ public record RecommendationEvaluationResponse(
     public record GroundTruthResult(
             Long productId,
             int relevance,
-            Integer categoryRank,
+            Integer overallRank,
             Double score,
             boolean includedInTop5
     ) {

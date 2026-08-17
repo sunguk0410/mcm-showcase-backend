@@ -13,9 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -52,15 +50,16 @@ public class RecommendationEvaluationValidator {
                                         .map(RecommendationEvaluationRequest.ExpectedRecommendation::productId))))
                 .collect(Collectors.toSet());
 
-        Map<Long, Product> products = productRepository.findAllById(productIds).stream()
-                .collect(Collectors.toMap(Product::getId, Function.identity()));
-        if (products.size() != productIds.size()) {
+        Set<Long> existingProductIds = productRepository.findAllById(productIds).stream()
+                .map(Product::getId)
+                .collect(Collectors.toSet());
+        if (existingProductIds.size() != productIds.size()) {
             Set<Long> missing = new HashSet<>(productIds);
-            missing.removeAll(products.keySet());
+            missing.removeAll(existingProductIds);
             badRequest("Products not found: " + missing);
         }
 
-        request.personas().forEach(persona -> validateGroundTruth(persona, products));
+        request.personas().forEach(this::validateGroundTruth);
     }
 
     private void validateSequences(RecommendationEvaluationRequest.Persona persona) {
@@ -97,11 +96,7 @@ public class RecommendationEvaluationValidator {
         });
     }
 
-    private void validateGroundTruth(
-            RecommendationEvaluationRequest.Persona persona,
-            Map<Long, Product> products
-    ) {
-        String category = persona.groundTruth().category();
+    private void validateGroundTruth(RecommendationEvaluationRequest.Persona persona) {
         Set<Long> arProductIds = persona.arInteractions().stream()
                 .map(RecommendationEvaluationRequest.ArInteraction::productId)
                 .collect(Collectors.toSet());
@@ -113,18 +108,6 @@ public class RecommendationEvaluationValidator {
             badRequest(persona.personaId()
                     + " anchor must appear in AR interactions or member wishlists");
         }
-        Product anchor = products.get(persona.groundTruth().anchorProductId());
-        if (!anchor.getCategory().getCode().equalsIgnoreCase(category)) {
-            badRequest(persona.personaId() + " anchor is not in Ground Truth category "
-                    + category);
-        }
-        boolean categoryAppearsInAr = arProductIds.stream()
-                .map(products::get)
-                .anyMatch(product -> product.getCategory().getCode().equalsIgnoreCase(category));
-        if (!categoryAppearsInAr) {
-            badRequest(persona.personaId() + " Ground Truth category " + category
-                    + " does not appear in AR interactions");
-        }
         Set<Long> recommendationIds = new HashSet<>();
         persona.groundTruth().recommendations().forEach(recommendation -> {
             if (!recommendationIds.add(recommendation.productId())) {
@@ -132,11 +115,6 @@ public class RecommendationEvaluationValidator {
             }
             if (recommendation.productId().equals(persona.groundTruth().anchorProductId())) {
                 badRequest(persona.personaId() + " Ground Truth recommendations contain the anchor");
-            }
-            Product product = products.get(recommendation.productId());
-            if (!product.getCategory().getCode().equalsIgnoreCase(category)) {
-                badRequest(persona.personaId() + " Ground Truth product "
-                        + recommendation.productId() + " is not in category " + category);
             }
         });
     }
