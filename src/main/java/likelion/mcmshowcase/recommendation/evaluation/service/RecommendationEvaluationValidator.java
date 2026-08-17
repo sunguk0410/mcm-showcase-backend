@@ -44,10 +44,8 @@ public class RecommendationEvaluationValidator {
                                         .map(RecommendationEvaluationRequest.ArInteraction::productId),
                                 persona.memberWishlists().stream()
                                         .map(RecommendationEvaluationRequest.MemberWishlist::productId)),
-                        java.util.stream.Stream.concat(
-                                java.util.stream.Stream.of(persona.groundTruth().anchorProductId()),
-                                persona.groundTruth().recommendations().stream()
-                                        .map(RecommendationEvaluationRequest.ExpectedRecommendation::productId))))
+                        persona.groundTruth().recommendations().stream()
+                                .map(RecommendationEvaluationRequest.ExpectedRecommendation::productId)))
                 .collect(Collectors.toSet());
 
         Set<Long> existingProductIds = productRepository.findAllById(productIds).stream()
@@ -97,24 +95,10 @@ public class RecommendationEvaluationValidator {
     }
 
     private void validateGroundTruth(RecommendationEvaluationRequest.Persona persona) {
-        Set<Long> arProductIds = persona.arInteractions().stream()
-                .map(RecommendationEvaluationRequest.ArInteraction::productId)
-                .collect(Collectors.toSet());
-        Set<Long> signalProductIds = new HashSet<>(arProductIds);
-        persona.memberWishlists().stream()
-                .map(RecommendationEvaluationRequest.MemberWishlist::productId)
-                .forEach(signalProductIds::add);
-        if (!signalProductIds.contains(persona.groundTruth().anchorProductId())) {
-            badRequest(persona.personaId()
-                    + " anchor must appear in AR interactions or member wishlists");
-        }
         Set<Long> recommendationIds = new HashSet<>();
         persona.groundTruth().recommendations().forEach(recommendation -> {
             if (!recommendationIds.add(recommendation.productId())) {
                 badRequest(persona.personaId() + " has duplicate Ground Truth products");
-            }
-            if (recommendation.productId().equals(persona.groundTruth().anchorProductId())) {
-                badRequest(persona.personaId() + " Ground Truth recommendations contain the anchor");
             }
         });
     }

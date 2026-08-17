@@ -41,7 +41,6 @@ public record RecommendationEvaluationRequest(
     }
 
     public record GroundTruth(
-            @NotNull Long anchorProductId,
             @NotEmpty List<@Valid ExpectedRecommendation> recommendations
     ) {
     }

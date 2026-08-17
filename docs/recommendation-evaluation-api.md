@@ -31,7 +31,6 @@ Content-Type: application/json
         {"productId": 50}
       ],
       "groundTruth": {
-        "anchorProductId": 70,
         "recommendations": [
           {"productId": 62, "relevance": 5},
           {"productId": 53, "relevance": 4},
@@ -54,6 +53,6 @@ Document actions must be converted before the request:
 | TRY | `FITTING` |
 | WANT | `WISHLIST_ADD` |
 
-Repeated events must not be deduplicated. Ground Truth recommendations may contain products from different categories. The Anchor is evaluated separately as the expected Top-1 product and must not be repeated in `groundTruth.recommendations`. Overall rankings, Recall@5, NDCG@5, and confidence metrics are calculated across the full product candidate set. AR-interacted and wishlisted products remain eligible because evaluation uses `exclude_seen=false`.
+Repeated events must not be deduplicated. Ground Truth recommendations may contain products from different categories. Overall rankings, Recall@5, NDCG@5, and confidence metrics are calculated across the full unseen product candidate set. Products in `arInteractions` are excluded because evaluation uses `exclude_seen=true`.
 
 The Python response must expose the overall evaluation as `rankingEvaluation`, and each Ground Truth result must use `overallRank` rather than a category-specific rank.

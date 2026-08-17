@@ -8,7 +8,6 @@ public record RecommendationEvaluationResponse(
 ) {
     public record Summary(
             int personaCount,
-            double top1AnchorAccuracy,
             double meanRecallAt5,
             double meanNdcgAt5,
             Double confidentGroupAverageGap,
@@ -21,19 +20,8 @@ public record RecommendationEvaluationResponse(
     public record PersonaResult(
             String personaId,
             String personaType,
-            AnchorEvaluation anchorEvaluation,
             RankingEvaluation rankingEvaluation,
             ConfidenceEvaluation confidenceEvaluation
-    ) {
-    }
-
-    public record AnchorEvaluation(
-            Long expectedProductId,
-            Long predictedProductId,
-            boolean hit,
-            Integer expectedAnchorRank,
-            Double expectedAnchorScore,
-            List<RankedProduct> top5
     ) {
     }
 

@@ -37,7 +37,6 @@ class RecommendationEvaluationValidatorTest {
                                 47L, "PRODUCT_SELECT", 1)),
                         List.of(),
                         new RecommendationEvaluationRequest.GroundTruth(
-                                47L,
                                 List.of(
                                         new RecommendationEvaluationRequest.ExpectedRecommendation(34L, 5),
                                         new RecommendationEvaluationRequest.ExpectedRecommendation(77L, 4),
