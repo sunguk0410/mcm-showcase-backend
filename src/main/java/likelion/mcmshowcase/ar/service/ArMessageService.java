@@ -43,7 +43,7 @@ public class ArMessageService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "ArSession not found: " + arSessionId));
         List<ArInteraction> fittings = arInteractionRepository
-                .findByArSessionAndInteractionTypeOrderBySequenceNoAsc(session, ArInteractionType.FITTING);
+                .findByArSessionAndInteractionTypeOrderBySequenceNoAsc(session, ArInteractionType.PRODUCT_SELECT);
         if (fittings.isEmpty()) return ArMessageEvaluateResponse.notTriggered();
 
         List<ArMessageHistory> histories = historyRepository
