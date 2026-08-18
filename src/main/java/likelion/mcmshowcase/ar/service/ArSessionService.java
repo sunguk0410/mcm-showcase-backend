@@ -10,6 +10,7 @@ import likelion.mcmshowcase.ar.dto.ArSessionMemberRequest;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberStatusResponse;
 import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
+import likelion.mcmshowcase.ar.dto.LatestActiveArSessionResponse;
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
@@ -41,12 +42,27 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ArSessionService {
 
+    private static final long LATEST_ACTIVE_SESSION_WINDOW_MINUTES = 1L;
+
     private final CustomerSessionRepository customerSessionRepository;
     private final ArSessionRepository arSessionRepository;
     private final ArInteractionRepository arInteractionRepository;
     private final ZoneInteractionRepository zoneInteractionRepository;
     private final RecommendationService recommendationService;
     private final MemberRepository memberRepository;
+
+    @Transactional(readOnly = true)
+    public LatestActiveArSessionResponse getLatestActiveUnlinkedSession() {
+        LocalDateTime createdAfter = LocalDateTime.now()
+                .minusMinutes(LATEST_ACTIVE_SESSION_WINDOW_MINUTES);
+        ArSession arSession = arSessionRepository
+                .findFirstByCustomerSessionIsNullAndEndedAtIsNullAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+                        createdAfter)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Active unlinked ArSession not found"));
+
+        return new LatestActiveArSessionResponse(arSession.getId());
+    }
 
     @Transactional(readOnly = true)
     public ArSessionMemberStatusResponse getMemberStatus(Long arSessionId) {

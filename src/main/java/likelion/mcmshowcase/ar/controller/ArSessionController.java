@@ -12,6 +12,7 @@ import likelion.mcmshowcase.ar.dto.ArSessionMemberResponse;
 import likelion.mcmshowcase.ar.dto.ArSessionMemberStatusResponse;
 import likelion.mcmshowcase.ar.dto.ProductSelectHistoryResponse;
 import likelion.mcmshowcase.ar.dto.ArMessageEvaluateResponse;
+import likelion.mcmshowcase.ar.dto.LatestActiveArSessionResponse;
 import likelion.mcmshowcase.ar.service.ArMessageService;
 import likelion.mcmshowcase.ar.service.ArSessionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,6 +36,11 @@ public class ArSessionController {
 
     private final ArSessionService arSessionService;
     private final ArMessageService arMessageService;
+
+    @GetMapping("/active/latest")
+    public ResponseEntity<LatestActiveArSessionResponse> getLatestActiveUnlinkedSession() {
+        return ResponseEntity.ok(arSessionService.getLatestActiveUnlinkedSession());
+    }
 
     @Operation(
             summary = "개인화 AR Message Trigger 평가",

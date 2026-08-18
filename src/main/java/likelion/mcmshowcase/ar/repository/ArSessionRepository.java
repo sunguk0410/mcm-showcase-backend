@@ -7,10 +7,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface ArSessionRepository extends JpaRepository<ArSession, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select arSession from ArSession arSession where arSession.id = :id")
     Optional<ArSession> findByIdForUpdate(@Param("id") Long id);
+
+    Optional<ArSession> findFirstByCustomerSessionIsNullAndEndedAtIsNullAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+            LocalDateTime createdAfter
+    );
 }

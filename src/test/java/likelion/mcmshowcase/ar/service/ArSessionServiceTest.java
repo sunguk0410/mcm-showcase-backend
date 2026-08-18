@@ -18,11 +18,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +38,38 @@ class ArSessionServiceTest {
     @Mock RecommendationService recommendationService;
     @Mock MemberRepository memberRepository;
     @InjectMocks ArSessionService arSessionService;
+
+    @Test
+    void getsLatestActiveUnlinkedSessionCreatedWithinOneMinute() {
+        LocalDateTime createdAt = LocalDateTime.now().minusSeconds(10);
+        ArSession arSession = ArSession.create(createdAt);
+        ReflectionTestUtils.setField(arSession, "id", 123L);
+        when(arSessionRepository
+                .findFirstByCustomerSessionIsNullAndEndedAtIsNullAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+                        any(LocalDateTime.class)))
+                .thenReturn(Optional.of(arSession));
+
+        var response = arSessionService.getLatestActiveUnlinkedSession();
+
+        assertEquals(123L, response.arSessionId());
+        verify(arSessionRepository)
+                .findFirstByCustomerSessionIsNullAndEndedAtIsNullAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+                        argThat(cutoff -> cutoff.isAfter(LocalDateTime.now().minusMinutes(1).minusSeconds(1))));
+    }
+
+    @Test
+    void latestActiveUnlinkedSessionReturnsNotFoundWhenMissing() {
+        when(arSessionRepository
+                .findFirstByCustomerSessionIsNullAndEndedAtIsNullAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+                        any(LocalDateTime.class)))
+                .thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> arSessionService.getLatestActiveUnlinkedSession());
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
 
     @Test
     void getMemberStatusIncludesArSessionGender() {
