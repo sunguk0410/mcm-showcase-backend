@@ -1,5 +1,8 @@
 package likelion.mcmshowcase.recommendation.service;
 
+import likelion.mcmshowcase.ar.entity.ArInteraction;
+import likelion.mcmshowcase.ar.entity.ArInteractionType;
+import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.avatar.service.AvatarGenerationService;
@@ -12,6 +15,7 @@ import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
 import likelion.mcmshowcase.recommendation.client.PythonRecommendationClient;
 import likelion.mcmshowcase.recommendation.dto.RecommendedProductResponse;
+import likelion.mcmshowcase.recommendation.dto.PythonRecommendationInteraction;
 import likelion.mcmshowcase.visit.repository.ZoneInteractionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -60,5 +65,41 @@ class RecommendationProductMappingTest {
 
         assertEquals("Tracy 비세토스 호보", response.name());
         assertEquals("Tracy Hobo in Visetos", response.nameEn());
+    }
+
+    @Test
+    void pythonInteractionsExcludeOnlyProductDeselect() {
+        ArSession arSession = mock(ArSession.class);
+        Product selectedProduct = mock(Product.class);
+        Product deselectedProduct = mock(Product.class);
+        Product wishlistProduct = mock(Product.class);
+        Product fittingProduct = mock(Product.class);
+        ArInteraction select = interaction(selectedProduct, ArInteractionType.PRODUCT_SELECT);
+        ArInteraction deselect = interaction(deselectedProduct, ArInteractionType.PRODUCT_DESELECT);
+        ArInteraction wishlist = interaction(wishlistProduct, ArInteractionType.WISHLIST_ADD);
+        ArInteraction fitting = interaction(fittingProduct, ArInteractionType.FITTING);
+        when(selectedProduct.getId()).thenReturn(13L);
+        when(wishlistProduct.getId()).thenReturn(14L);
+        when(fittingProduct.getId()).thenReturn(15L);
+        when(arInteractionRepository.findByArSessionOrderBySequenceNoAsc(arSession))
+                .thenReturn(List.of(select, deselect, wishlist, fitting));
+
+        List<PythonRecommendationInteraction> result = ReflectionTestUtils.invokeMethod(
+                recommendationService, "getArInteractions", arSession);
+
+        assertEquals(List.of(
+                new PythonRecommendationInteraction(13L, "PRODUCT_SELECT"),
+                new PythonRecommendationInteraction(14L, "WISHLIST_ADD"),
+                new PythonRecommendationInteraction(15L, "FITTING")
+        ), result);
+    }
+
+    private ArInteraction interaction(Product product, ArInteractionType type) {
+        ArInteraction interaction = mock(ArInteraction.class);
+        when(interaction.getInteractionType()).thenReturn(type);
+        if (type != ArInteractionType.PRODUCT_DESELECT) {
+            when(interaction.getProduct()).thenReturn(product);
+        }
+        return interaction;
     }
 }

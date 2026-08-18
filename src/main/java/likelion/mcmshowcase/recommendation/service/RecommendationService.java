@@ -1,6 +1,7 @@
 package likelion.mcmshowcase.recommendation.service;
 
 import likelion.mcmshowcase.ar.entity.ArSession;
+import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.avatar.service.AvatarGenerationService;
@@ -301,6 +302,8 @@ public class RecommendationService {
     private List<PythonRecommendationInteraction> getArInteractions(ArSession arSession) {
         return arInteractionRepository.findByArSessionOrderBySequenceNoAsc(arSession)
                 .stream()
+                .filter(interaction -> interaction.getInteractionType()
+                        != ArInteractionType.PRODUCT_DESELECT)
                 .map(interaction -> new PythonRecommendationInteraction(
                         interaction.getProduct().getId(),
                         interaction.getInteractionType().name()
