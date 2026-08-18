@@ -252,6 +252,12 @@ public class RecommendationService {
             boolean includeArInteractions
     ) {
         ArSession arSession = findArSession(arSessionId);
+        if (arSession.getGender() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Gender is not set for ArSession: " + arSession.getId()
+            );
+        }
 
         List<PythonRecommendationInteraction> interactions = includeArInteractions
                 ? getArInteractions(arSession)
@@ -262,7 +268,8 @@ public class RecommendationService {
                         arSessionId,
                         interactions,
                         categoryCode,
-                        DEFAULT_TOP_K
+                        DEFAULT_TOP_K,
+                        arSession.getGender()
                 )
         );
 
