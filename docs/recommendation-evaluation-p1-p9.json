@@ -1,0 +1,233 @@
+{
+  "personas": [
+    {
+      "personaId": "P1",
+      "personaType": "CONFIDENT",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 30, "sequenceNo": 1},
+        {"zone": "NEW_COLLECTION", "category": "SHOES", "dwellSeconds": 25, "sequenceNo": 2},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 50, "sequenceNo": 3},
+        {"zone": "CLASSIC", "category": "ACCESSORIES", "dwellSeconds": 20, "sequenceNo": 4},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 125, "sequenceNo": 5},
+        {"zone": "TRAVEL", "category": "SHOES", "dwellSeconds": 70, "sequenceNo": 6},
+        {"zone": "TRAVEL", "category": "TOP", "dwellSeconds": 50, "sequenceNo": 7},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 45, "sequenceNo": 8},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 70, "sequenceNo": 9},
+        {"zone": "TRAVEL", "category": "SHOES", "dwellSeconds": 35, "sequenceNo": 10},
+        {"zone": "TRAVEL", "category": "BOTTOM", "dwellSeconds": 25, "sequenceNo": 11}
+      ],
+      "arInteractions": [
+        {"productId": 43, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 43, "interactionType": "FITTING", "sequenceNo": 2}
+      ],
+      "memberWishlists": [{"productId": 70}, {"productId": 50}],
+      "groundTruth": {"recommendations": [
+        {"productId": 52, "relevance": 3},
+        {"productId": 62, "relevance": 2},
+        {"productId": 72, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P2",
+      "personaType": "CONFIDENT",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 55, "sequenceNo": 1},
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 50, "sequenceNo": 2},
+        {"zone": "NEW_COLLECTION", "category": "BOTTOM", "dwellSeconds": 30, "sequenceNo": 3},
+        {"zone": "NEW_COLLECTION", "category": "ACCESSORIES", "dwellSeconds": 20, "sequenceNo": 4},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 35, "sequenceNo": 5},
+        {"zone": "CLASSIC", "category": "ACCESSORIES", "dwellSeconds": 25, "sequenceNo": 6},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 25, "sequenceNo": 7},
+        {"zone": "TRAVEL", "category": "TOP", "dwellSeconds": 20, "sequenceNo": 8},
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 60, "sequenceNo": 9},
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 50, "sequenceNo": 10},
+        {"zone": "NEW_COLLECTION", "category": "BOTTOM", "dwellSeconds": 40, "sequenceNo": 11},
+        {"zone": "NEW_COLLECTION", "category": "ACCESSORIES", "dwellSeconds": 25, "sequenceNo": 12}
+      ],
+      "arInteractions": [
+        {"productId": 76, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 76, "interactionType": "FITTING", "sequenceNo": 2}
+      ],
+      "memberWishlists": [{"productId": 46}],
+      "groundTruth": {"recommendations": [
+        {"productId": 81, "relevance": 3},
+        {"productId": 80, "relevance": 2},
+        {"productId": 114, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P3",
+      "personaType": "EXPLORATORY",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 25, "sequenceNo": 1},
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 20, "sequenceNo": 2},
+        {"zone": "NEW_COLLECTION", "category": "SHOES", "dwellSeconds": 15, "sequenceNo": 3},
+        {"zone": "NEW_COLLECTION", "category": "ACCESSORIES", "dwellSeconds": 10, "sequenceNo": 4},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 60, "sequenceNo": 5},
+        {"zone": "CLASSIC", "category": "TOP", "dwellSeconds": 40, "sequenceNo": 6},
+        {"zone": "CLASSIC", "category": "BOTTOM", "dwellSeconds": 35, "sequenceNo": 7},
+        {"zone": "CLASSIC", "category": "SHOES", "dwellSeconds": 25, "sequenceNo": 8},
+        {"zone": "CLASSIC", "category": "ACCESSORIES", "dwellSeconds": 15, "sequenceNo": 9},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 20, "sequenceNo": 10},
+        {"zone": "TRAVEL", "category": "SHOES", "dwellSeconds": 15, "sequenceNo": 11},
+        {"zone": "TRAVEL", "category": "ACCESSORIES", "dwellSeconds": 15, "sequenceNo": 12},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 45, "sequenceNo": 13},
+        {"zone": "CLASSIC", "category": "TOP", "dwellSeconds": 30, "sequenceNo": 14},
+        {"zone": "CLASSIC", "category": "BOTTOM", "dwellSeconds": 30, "sequenceNo": 15},
+        {"zone": "CLASSIC", "category": "SHOES", "dwellSeconds": 25, "sequenceNo": 16},
+        {"zone": "CLASSIC", "category": "ACCESSORIES", "dwellSeconds": 15, "sequenceNo": 17}
+      ],
+      "arInteractions": [
+        {"productId": 47, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 47, "interactionType": "FITTING", "sequenceNo": 2}
+      ],
+      "memberWishlists": [],
+      "groundTruth": {"recommendations": [
+        {"productId": 40, "relevance": 3},
+        {"productId": 64, "relevance": 2},
+        {"productId": 57, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P4",
+      "personaType": "CONFIDENT",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 20, "sequenceNo": 1},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 25, "sequenceNo": 2},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 190, "sequenceNo": 3},
+        {"zone": "TRAVEL", "category": "ACCESSORIES", "dwellSeconds": 65, "sequenceNo": 4},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 95, "sequenceNo": 5},
+        {"zone": "TRAVEL", "category": "ACCESSORIES", "dwellSeconds": 35, "sequenceNo": 6}
+      ],
+      "arInteractions": [
+        {"productId": 69, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 69, "interactionType": "FITTING", "sequenceNo": 2}
+      ],
+      "memberWishlists": [],
+      "groundTruth": {"recommendations": [
+        {"productId": 12, "relevance": 3},
+        {"productId": 52, "relevance": 2},
+        {"productId": 120, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P5",
+      "personaType": "CONFIDENT",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 140, "sequenceNo": 1},
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 35, "sequenceNo": 2},
+        {"zone": "NEW_COLLECTION", "category": "ACCESSORIES", "dwellSeconds": 25, "sequenceNo": 3},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 30, "sequenceNo": 4},
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 110, "sequenceNo": 5},
+        {"zone": "NEW_COLLECTION", "category": "ACCESSORIES", "dwellSeconds": 20, "sequenceNo": 6}
+      ],
+      "arInteractions": [
+        {"productId": 60, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 60, "interactionType": "FITTING", "sequenceNo": 2}
+      ],
+      "memberWishlists": [{"productId": 66}],
+      "groundTruth": {"recommendations": [
+        {"productId": 46, "relevance": 3},
+        {"productId": 59, "relevance": 2},
+        {"productId": 75, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P6",
+      "personaType": "CONFIDENT",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 25, "sequenceNo": 1},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 165, "sequenceNo": 2},
+        {"zone": "CLASSIC", "category": "ACCESSORIES", "dwellSeconds": 35, "sequenceNo": 3},
+        {"zone": "CLASSIC", "category": "SHOES", "dwellSeconds": 20, "sequenceNo": 4},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 20, "sequenceNo": 5},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 120, "sequenceNo": 6}
+      ],
+      "arInteractions": [
+        {"productId": 64, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 64, "interactionType": "FITTING", "sequenceNo": 2}
+      ],
+      "memberWishlists": [{"productId": 40}],
+      "groundTruth": {"recommendations": [
+        {"productId": 73, "relevance": 3},
+        {"productId": 38, "relevance": 2},
+        {"productId": 67, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P7",
+      "personaType": "EXPLORATORY",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 25, "sequenceNo": 1},
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 20, "sequenceNo": 2},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 30, "sequenceNo": 3},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 85, "sequenceNo": 4},
+        {"zone": "TRAVEL", "category": "ACCESSORIES", "dwellSeconds": 70, "sequenceNo": 5},
+        {"zone": "TRAVEL", "category": "BOTTOM", "dwellSeconds": 45, "sequenceNo": 6},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 50, "sequenceNo": 7}
+      ],
+      "arInteractions": [
+        {"productId": 49, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 49, "interactionType": "FITTING", "sequenceNo": 2},
+        {"productId": 120, "interactionType": "PRODUCT_SELECT", "sequenceNo": 3}
+      ],
+      "memberWishlists": [],
+      "groundTruth": {"recommendations": [
+        {"productId": 123, "relevance": 3},
+        {"productId": 121, "relevance": 2},
+        {"productId": 19, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P8",
+      "personaType": "EXPLORATORY",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "BAG", "dwellSeconds": 70, "sequenceNo": 1},
+        {"zone": "NEW_COLLECTION", "category": "BOTTOM", "dwellSeconds": 65, "sequenceNo": 2},
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 55, "sequenceNo": 3},
+        {"zone": "NEW_COLLECTION", "category": "ACCESSORIES", "dwellSeconds": 45, "sequenceNo": 4},
+        {"zone": "NEW_COLLECTION", "category": "SHOES", "dwellSeconds": 40, "sequenceNo": 5},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 35, "sequenceNo": 6},
+        {"zone": "TRAVEL", "category": "ACCESSORIES", "dwellSeconds": 20, "sequenceNo": 7}
+      ],
+      "arInteractions": [
+        {"productId": 55, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 55, "interactionType": "FITTING", "sequenceNo": 2},
+        {"productId": 94, "interactionType": "PRODUCT_SELECT", "sequenceNo": 3},
+        {"productId": 94, "interactionType": "FITTING", "sequenceNo": 4}
+      ],
+      "memberWishlists": [{"productId": 107}],
+      "groundTruth": {"recommendations": [
+        {"productId": 90, "relevance": 3},
+        {"productId": 116, "relevance": 2},
+        {"productId": 126, "relevance": 1}
+      ]}
+    },
+    {
+      "personaId": "P9",
+      "personaType": "EXPLORATORY",
+      "zoneInteractions": [
+        {"zone": "NEW_COLLECTION", "category": "TOP", "dwellSeconds": 25, "sequenceNo": 1},
+        {"zone": "CLASSIC", "category": "BAG", "dwellSeconds": 65, "sequenceNo": 2},
+        {"zone": "CLASSIC", "category": "SHOES", "dwellSeconds": 55, "sequenceNo": 3},
+        {"zone": "CLASSIC", "category": "TOP", "dwellSeconds": 50, "sequenceNo": 4},
+        {"zone": "CLASSIC", "category": "BOTTOM", "dwellSeconds": 45, "sequenceNo": 5},
+        {"zone": "CLASSIC", "category": "ACCESSORIES", "dwellSeconds": 40, "sequenceNo": 6},
+        {"zone": "TRAVEL", "category": "BAG", "dwellSeconds": 30, "sequenceNo": 7},
+        {"zone": "CLASSIC", "category": "TOP", "dwellSeconds": 35, "sequenceNo": 8}
+      ],
+      "arInteractions": [
+        {"productId": 57, "interactionType": "PRODUCT_SELECT", "sequenceNo": 1},
+        {"productId": 57, "interactionType": "FITTING", "sequenceNo": 2},
+        {"productId": 125, "interactionType": "PRODUCT_SELECT", "sequenceNo": 3},
+        {"productId": 125, "interactionType": "FITTING", "sequenceNo": 4}
+      ],
+      "memberWishlists": [],
+      "groundTruth": {"recommendations": [
+        {"productId": 84, "relevance": 3},
+        {"productId": 103, "relevance": 2},
+        {"productId": 115, "relevance": 1}
+      ]}
+    }
+  ]
+}
