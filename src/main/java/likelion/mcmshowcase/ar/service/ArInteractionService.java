@@ -28,6 +28,7 @@ public class ArInteractionService {
     private final ArInteractionRepository arInteractionRepository;
     private final ProductRepository productRepository;
     private final MemberWishlistRepository memberWishlistRepository;
+    private final ArFittingImageService arFittingImageService;
 
     @Transactional
     public ArInteractionCreateResponse create(ArInteractionCreateRequest request) {
@@ -58,15 +59,24 @@ public class ArInteractionService {
         );
         ArInteraction savedArInteraction = arInteractionRepository.save(arInteraction);
         synchronizeWishlist(arSession, product, request.interactionType(), now);
+        String avatarImageUrl = isProductSelectionChange(request.interactionType())
+                ? arFittingImageService.resolve(arSession)
+                : null;
 
         return new ArInteractionCreateResponse(
                 savedArInteraction.getId(),
                 arSession.getId(),
                 product.getId(),
                 savedArInteraction.getInteractionType(),
+                avatarImageUrl,
                 savedArInteraction.getSequenceNo(),
                 savedArInteraction.getCreatedAt()
         );
+    }
+
+    private boolean isProductSelectionChange(ArInteractionType interactionType) {
+        return interactionType == ArInteractionType.PRODUCT_SELECT
+                || interactionType == ArInteractionType.PRODUCT_DESELECT;
     }
 
     private void synchronizeWishlist(

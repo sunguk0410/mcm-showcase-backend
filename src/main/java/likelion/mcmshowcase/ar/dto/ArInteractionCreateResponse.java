@@ -9,6 +9,7 @@ public record ArInteractionCreateResponse(
         Long arSessionId,
         Long productId,
         ArInteractionType interactionType,
+        String avatarImageUrl,
         Integer sequenceNo,
         LocalDateTime createdAt
 ) {
