@@ -3,6 +3,7 @@ server:
 
 app:
   public-base-url: ${PUBLIC_BASE_URL:}
+  image-directory: ${IMAGE_STORAGE_DIR:/app/images}
 
 spring:
   datasource:
