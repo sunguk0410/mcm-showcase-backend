@@ -56,7 +56,11 @@ public class ArSessionService {
         Long memberId = arSession.getMember() == null
                 ? null
                 : arSession.getMember().getId();
-        return new ArSessionMemberStatusResponse(arSession.getId(), memberId);
+        return new ArSessionMemberStatusResponse(
+                arSession.getId(),
+                memberId,
+                arSession.getGender()
+        );
     }
 
     @Transactional

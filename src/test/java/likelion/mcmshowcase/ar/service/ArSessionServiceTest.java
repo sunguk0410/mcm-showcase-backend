@@ -37,6 +37,20 @@ class ArSessionServiceTest {
     @InjectMocks ArSessionService arSessionService;
 
     @Test
+    void getMemberStatusIncludesArSessionGender() {
+        ArSession arSession = ArSession.create(LocalDateTime.now());
+        ReflectionTestUtils.setField(arSession, "id", 34L);
+        arSession.setGender(Gender.FEMALE);
+        when(arSessionRepository.findById(34L)).thenReturn(Optional.of(arSession));
+
+        var response = arSessionService.getMemberStatus(34L);
+
+        assertEquals(34L, response.arSessionId());
+        assertEquals(null, response.memberId());
+        assertEquals(Gender.FEMALE, response.gender());
+    }
+
+    @Test
     void existingArSessionMemberPatchStillLinksMember() {
         ArSession arSession = ArSession.create(LocalDateTime.now());
         ReflectionTestUtils.setField(arSession, "id", 34L);
