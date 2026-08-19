@@ -5,6 +5,7 @@ import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
+import likelion.mcmshowcase.ar.service.ArFittingImageService;
 import likelion.mcmshowcase.avatar.service.AvatarGenerationService;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
@@ -36,6 +37,7 @@ class RecommendationProductMappingTest {
 
     @Mock ArSessionRepository arSessionRepository;
     @Mock ArInteractionRepository arInteractionRepository;
+    @Mock ArFittingImageService arFittingImageService;
     @Mock ProductRepository productRepository;
     @Mock ZoneInteractionRepository zoneInteractionRepository;
     @Mock MemberWishlistRepository memberWishlistRepository;
@@ -68,7 +70,7 @@ class RecommendationProductMappingTest {
     }
 
     @Test
-    void pythonInteractionsExcludeOnlyProductDeselect() {
+    void pythonInteractionsExcludeMissingAvatarImagesAndProductDeselect() {
         ArSession arSession = mock(ArSession.class);
         Product selectedProduct = mock(Product.class);
         Product deselectedProduct = mock(Product.class);
@@ -79,25 +81,24 @@ class RecommendationProductMappingTest {
         ArInteraction wishlist = interaction(wishlistProduct, ArInteractionType.WISHLIST_ADD);
         ArInteraction fitting = interaction(fittingProduct, ArInteractionType.FITTING);
         when(selectedProduct.getId()).thenReturn(13L);
-        when(wishlistProduct.getId()).thenReturn(14L);
-        when(fittingProduct.getId()).thenReturn(15L);
         when(arInteractionRepository.findByArSessionOrderBySequenceNoAsc(arSession))
                 .thenReturn(List.of(select, deselect, wishlist, fitting));
+        when(arFittingImageService.filterInteractionsWithAvatarImage(
+                arSession, List.of(select, deselect, wishlist, fitting)))
+                .thenReturn(List.of(select, deselect));
 
         List<PythonRecommendationInteraction> result = ReflectionTestUtils.invokeMethod(
                 recommendationService, "getArInteractions", arSession);
 
         assertEquals(List.of(
-                new PythonRecommendationInteraction(13L, "PRODUCT_SELECT"),
-                new PythonRecommendationInteraction(14L, "WISHLIST_ADD"),
-                new PythonRecommendationInteraction(15L, "FITTING")
+                new PythonRecommendationInteraction(13L, "PRODUCT_SELECT")
         ), result);
     }
 
     private ArInteraction interaction(Product product, ArInteractionType type) {
         ArInteraction interaction = mock(ArInteraction.class);
-        when(interaction.getInteractionType()).thenReturn(type);
-        if (type != ArInteractionType.PRODUCT_DESELECT) {
+        org.mockito.Mockito.lenient().when(interaction.getInteractionType()).thenReturn(type);
+        if (type == ArInteractionType.PRODUCT_SELECT) {
             when(interaction.getProduct()).thenReturn(product);
         }
         return interaction;

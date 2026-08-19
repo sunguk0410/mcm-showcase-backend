@@ -30,6 +30,7 @@ class ArMessageServiceTest {
     @Mock ArSessionRepository sessionRepository;
     @Mock ArInteractionRepository interactionRepository;
     @Mock ArMessageHistoryRepository historyRepository;
+    @Mock ArFittingImageService arFittingImageService;
     @Mock ArSession session;
 
     private ArMessageService service;
@@ -38,10 +39,13 @@ class ArMessageServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ArMessageService(sessionRepository, interactionRepository, historyRepository);
+        service = new ArMessageService(
+                sessionRepository, interactionRepository, historyRepository, arFittingImageService);
         when(sessionRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(session));
-        when(interactionRepository.findByArSessionAndInteractionTypeOrderBySequenceNoAsc(session, ArInteractionType.PRODUCT_SELECT))
+        when(interactionRepository.findByArSessionOrderBySequenceNoAsc(session))
                 .thenAnswer(invocation -> List.copyOf(fittings));
+        when(arFittingImageService.filterInteractionsWithAvatarImage(eq(session), anyList()))
+                .thenAnswer(invocation -> List.copyOf(invocation.getArgument(1)));
         when(historyRepository.findByArSessionOrderByFittingSequenceNoAscIdAsc(session))
                 .thenAnswer(invocation -> List.copyOf(histories));
         when(historyRepository.save(any())).thenAnswer(invocation -> {
@@ -148,6 +152,7 @@ class ArMessageServiceTest {
         when(product.getZone()).thenReturn(zone);
         ArInteraction interaction = mock(ArInteraction.class);
         when(interaction.getProduct()).thenReturn(product);
+        when(interaction.getInteractionType()).thenReturn(ArInteractionType.PRODUCT_SELECT);
         fittings.add(interaction);
     }
 

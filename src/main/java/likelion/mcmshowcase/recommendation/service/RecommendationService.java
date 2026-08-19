@@ -1,9 +1,11 @@
 package likelion.mcmshowcase.recommendation.service;
 
+import likelion.mcmshowcase.ar.entity.ArInteraction;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
+import likelion.mcmshowcase.ar.service.ArFittingImageService;
 import likelion.mcmshowcase.avatar.service.AvatarGenerationService;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.entity.TodayLook;
@@ -52,6 +54,7 @@ public class RecommendationService {
 
     private final ArSessionRepository arSessionRepository;
     private final ArInteractionRepository arInteractionRepository;
+    private final ArFittingImageService arFittingImageService;
     private final ProductRepository productRepository;
     private final ZoneInteractionRepository zoneInteractionRepository;
     private final MemberWishlistRepository memberWishlistRepository;
@@ -300,7 +303,9 @@ public class RecommendationService {
     }
 
     private List<PythonRecommendationInteraction> getArInteractions(ArSession arSession) {
-        return arInteractionRepository.findByArSessionOrderBySequenceNoAsc(arSession)
+        List<ArInteraction> history =
+                arInteractionRepository.findByArSessionOrderBySequenceNoAsc(arSession);
+        return arFittingImageService.filterInteractionsWithAvatarImage(arSession, history)
                 .stream()
                 .filter(interaction -> interaction.getInteractionType()
                         != ArInteractionType.PRODUCT_DESELECT)

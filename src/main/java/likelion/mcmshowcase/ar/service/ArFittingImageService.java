@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,13 +36,34 @@ public class ArFittingImageService {
     }
 
     public String resolve(ArSession arSession) {
+        return resolve(
+                arSession,
+                arInteractionRepository.findByArSessionOrderBySequenceNoAsc(arSession)
+        );
+    }
+
+    public List<ArInteraction> filterInteractionsWithAvatarImage(
+            ArSession arSession,
+            List<ArInteraction> history
+    ) {
+        List<ArInteraction> result = new ArrayList<>();
+        for (int index = 0; index < history.size(); index++) {
+            ArInteraction interaction = history.get(index);
+            if (!isSelectionChange(interaction.getInteractionType())) {
+                continue;
+            }
+            if (resolve(arSession, history.subList(0, index + 1)) != null) {
+                result.add(interaction);
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    private String resolve(ArSession arSession, List<ArInteraction> history) {
         Gender gender = arSession.getGender();
         if (gender == null) {
             return null;
         }
-
-        List<ArInteraction> history = arInteractionRepository
-                .findByArSessionOrderBySequenceNoAsc(arSession);
         Product bag = null;
         Product top = null;
         Product bottom = null;

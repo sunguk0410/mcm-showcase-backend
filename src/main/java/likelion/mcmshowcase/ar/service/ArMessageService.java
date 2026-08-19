@@ -37,6 +37,7 @@ public class ArMessageService {
     private final ArSessionRepository arSessionRepository;
     private final ArInteractionRepository arInteractionRepository;
     private final ArMessageHistoryRepository historyRepository;
+    private final ArFittingImageService arFittingImageService;
 
     @Transactional
     public ArMessageEvaluateResponse evaluate(Long arSessionId) {
@@ -48,8 +49,14 @@ public class ArMessageService {
         ArSession session = arSessionRepository.findByIdForUpdate(arSessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "ArSession not found: " + arSessionId));
-        List<ArInteraction> fittings = arInteractionRepository
-                .findByArSessionAndInteractionTypeOrderBySequenceNoAsc(session, ArInteractionType.PRODUCT_SELECT);
+        List<ArInteraction> interactionHistory = arInteractionRepository
+                .findByArSessionOrderBySequenceNoAsc(session);
+        List<ArInteraction> fittings = arFittingImageService
+                .filterInteractionsWithAvatarImage(session, interactionHistory)
+                .stream()
+                .filter(interaction -> interaction.getInteractionType()
+                        == ArInteractionType.PRODUCT_SELECT)
+                .toList();
         if (fittings.isEmpty()) return ArMessageEvaluateResponse.notTriggered();
 
         List<ArMessageHistory> histories = historyRepository

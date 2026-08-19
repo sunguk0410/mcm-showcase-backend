@@ -132,6 +132,23 @@ class ArFittingImageServiceTest {
     }
 
     @Test
+    void filtersInteractionsThatReturnedNoAvatarImage() {
+        Product shoes = product(40L, "SHOES-CODE", "SHOES");
+        Product missingTop = product(50L, "MISSING-TOP", "TOP");
+        Product bag = product(60L, "BAG-CODE", "BAG");
+        ArInteraction shoesSelection = interaction(shoes, ArInteractionType.PRODUCT_SELECT);
+        ArInteraction missingTopSelection = interaction(missingTop, ArInteractionType.PRODUCT_SELECT);
+        ArInteraction bagSelection = interaction(bag, ArInteractionType.PRODUCT_SELECT);
+        List<ArInteraction> history = List.of(
+                shoesSelection, missingTopSelection, bagSelection);
+        createFittingImage("female/bag-BAG-CODE.png");
+
+        assertEquals(
+                List.of(bagSelection),
+                service.filterInteractionsWithAvatarImage(session, history));
+    }
+
+    @Test
     void missingFittingImageReturnsNull() {
         Product top = product(20L, "TOP-CODE", "TOP");
         stubHistory(interaction(top, ArInteractionType.PRODUCT_SELECT));
