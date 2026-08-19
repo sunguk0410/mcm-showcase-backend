@@ -20,6 +20,8 @@ public class ArFittingImageService {
     private static final String BAG = "BAG";
     private static final String TOP = "TOP";
     private static final String BOTTOM = "BOTTOM";
+    private static final String ACCESSORIES = "ACCESSORIES";
+    private static final String SHOES = "SHOES";
 
     private final ArInteractionRepository arInteractionRepository;
     private final Path imageDirectory;
@@ -62,6 +64,10 @@ public class ArFittingImageService {
 
         String genderDirectory = gender.name().toLowerCase(Locale.ROOT);
         ArInteraction lastSelectionChange = lastSelectionChange(history);
+        if (lastSelectionChange != null
+                && doesNotSupportFitting(categoryOf(lastSelectionChange.getProduct()))) {
+            return null;
+        }
         if (lastSelectionChange != null && BAG.equals(categoryOf(lastSelectionChange.getProduct()))) {
             return bag == null
                     ? baseAvatarPath(genderDirectory)
@@ -100,6 +106,10 @@ public class ArFittingImageService {
     private boolean isSelectionChange(ArInteractionType interactionType) {
         return interactionType == ArInteractionType.PRODUCT_SELECT
                 || interactionType == ArInteractionType.PRODUCT_DESELECT;
+    }
+
+    private boolean doesNotSupportFitting(String category) {
+        return ACCESSORIES.equals(category) || SHOES.equals(category);
     }
 
     private String categoryOf(Product product) {

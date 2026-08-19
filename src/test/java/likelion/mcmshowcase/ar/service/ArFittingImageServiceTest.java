@@ -116,6 +116,22 @@ class ArFittingImageServiceTest {
     }
 
     @Test
+    void shoesDoNotReturnAnAvatarImage() {
+        Product shoes = product(40L, "SHOES-CODE", "SHOES");
+        stubHistory(interaction(shoes, ArInteractionType.PRODUCT_SELECT));
+
+        assertNull(service.resolve(session));
+    }
+
+    @Test
+    void accessoriesDoNotReturnAnAvatarImage() {
+        Product accessories = product(50L, "ACCESSORIES-CODE", "ACCESSORIES");
+        stubHistory(interaction(accessories, ArInteractionType.PRODUCT_SELECT));
+
+        assertNull(service.resolve(session));
+    }
+
+    @Test
     void missingFittingImageReturnsNull() {
         Product top = product(20L, "TOP-CODE", "TOP");
         stubHistory(interaction(top, ArInteractionType.PRODUCT_SELECT));
