@@ -116,6 +116,6 @@ public class ArFittingImageService {
     }
 
     private String baseAvatarPath(String genderDirectory) {
-        return "/images/avatars/" + genderDirectory + ".png";
+        return "/images/fittings/" + genderDirectory + "/" + genderDirectory + ".png";
     }
 }

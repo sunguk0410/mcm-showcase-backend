@@ -105,7 +105,7 @@ class ArFittingImageServiceTest {
                 interaction(bag, ArInteractionType.PRODUCT_SELECT),
                 interaction(bag, ArInteractionType.PRODUCT_DESELECT));
 
-        assertEquals("/images/avatars/female.png", service.resolve(session));
+        assertEquals("/images/fittings/female/female.png", service.resolve(session));
     }
 
     @Test
