@@ -1,4 +1,4 @@
-# MCM AI Journey — Backend
+# Closer — Backend
 
 > 고객보다 한발 먼저 취향을 이해하고, 다음 방문까지 기억하는 Interactive Retail Experience
 
@@ -12,7 +12,7 @@ MCM HAUS 청담의 오프라인 쇼핑 경험을 온라인과 연결하는 **MCM
 
 * MCM Storefront: https://www.mcm-showcase.com
 * AR Fitting: https://www.mcm-showcase.com/ar
-* Backend API: https://api.mcm-showcase.com
+* Digital Closet: https://www.mcm-showcase.com/#closet
 * Swagger: https://api.mcm-showcase.com/swagger-ui/index.html
 
 ## 서비스 배경
