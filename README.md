@@ -651,22 +651,6 @@ Docker Compose
 Spring Boot + MySQL
 ```
 
-## API Documentation
-
-Springdoc OpenAPI를 사용하여 API 명세를 제공합니다.
-
-로컬 실행 시:
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
-
-OpenAPI JSON:
-
-```text
-http://localhost:8080/v3/api-docs
-```
-
 ## 해커톤에서 제안하는 가치
 
 MCM AI Journey Backend는 고객에게 AI 기능을 별도로 사용하도록 요구하지 않습니다.
