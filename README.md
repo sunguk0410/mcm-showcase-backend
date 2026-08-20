@@ -1,10 +1,10 @@
 # Closer — Backend
 
-> 고객보다 한발 먼저 취향을 이해하고, 다음 방문까지 기억하는 Interactive Retail Experience
+> 고객보다 한발 먼저 취향을 이해하고, 다음 방문까지 기억하는 Personalized Retail Experience
 
 <img width="1920" height="1080" alt="12" src="https://github.com/user-attachments/assets/628bcef9-1400-41a1-8035-5073e4bdd825" />
 
-MCM HAUS 청담의 오프라인 쇼핑 경험을 온라인과 연결하는 **MCM AI Journey의 백엔드 서버**입니다.
+MCM HAUS 청담의 오프라인 쇼핑 경험을 온라인과 연결하는 **MCM Closer의 백엔드 서버**입니다.
 
 매장 동선, AR 상품 선택, 위시리스트, 실물 피팅 요청 등 고객의 쇼핑 과정에서 발생하는 데이터를 하나의 세션으로 연결하고, 이를 AI 추천 서버와 연계하여 Personalized Recommendation, Personalized Comment, Avatar Look, Digital Closet으로 이어지는 전체 쇼핑 여정을 관리합니다.
 
@@ -12,14 +12,14 @@ MCM HAUS 청담의 오프라인 쇼핑 경험을 온라인과 연결하는 **MCM
 
 * MCM Storefront: https://www.mcm-showcase.com
 * AR Fitting: https://www.mcm-showcase.com/ar
-* Digital Closet: https://www.mcm-showcase.com/#closet
+* Digital Closet: https://www.mcm-showcase.com/my-closet
 * Swagger: https://api.mcm-showcase.com/swagger-ui/index.html
 
 ## 서비스 배경
 
 럭셔리 매장의 고객은 각자 다른 동선과 관심 상품을 가지고 매장을 탐색합니다. 하지만 기존 오프라인 쇼핑에서는 고객이 어떤 공간에 오래 머물렀는지, 어떤 상품을 비교했는지, 무엇을 피팅하고 찜했는지와 같은 행동이 구매하지 않는 순간 대부분 사라집니다.
 
-MCM AI Journey Backend는 이러한 오프라인 행동을 하나의 **Customer Journey Data**로 연결하고, 고객의 현재 행동과 이전 취향을 AI 추천에 활용할 수 있도록 설계했습니다.
+MCM Closer Backend는 이러한 오프라인 행동을 하나의 **Customer Journey Data**로 연결하고, 고객의 현재 행동과 이전 취향을 AI 추천에 활용할 수 있도록 설계했습니다.
 
 1. 고객이 매장에 입장하면 Customer Session을 생성합니다.
 2. 매장 내 Zone 이동과 체류 시간을 기록합니다.
