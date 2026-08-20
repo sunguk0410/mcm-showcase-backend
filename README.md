@@ -15,6 +15,10 @@ MCM HAUS 청담의 오프라인 쇼핑 경험을 온라인과 연결하는 **MCM
 * Digital Closet: https://www.mcm-showcase.com/my-closet
 * Swagger: https://api.mcm-showcase.com/swagger-ui/index.html
 
+<img width="1780" height="1187" alt="image" src="https://github.com/user-attachments/assets/7fbcbc6b-9098-4f31-a602-690011c5ccf8" />
+<img width="1780" height="1187" alt="image" src="https://github.com/user-attachments/assets/46deb9ce-3456-4b0a-a0ca-d849035090f4" />
+<img width="1780" height="1236" alt="image" src="https://github.com/user-attachments/assets/f4d1e767-3548-4ed2-b8d8-b7b917ef127f" />
+
 ## 서비스 배경
 
 럭셔리 매장의 고객은 각자 다른 동선과 관심 상품을 가지고 매장을 탐색합니다. 하지만 기존 오프라인 쇼핑에서는 고객이 어떤 공간에 오래 머물렀는지, 어떤 상품을 비교했는지, 무엇을 피팅하고 찜했는지와 같은 행동이 구매하지 않는 순간 대부분 사라집니다.
