@@ -657,7 +657,7 @@ Spring Boot + MySQL
 
 ## 해커톤에서 제안하는 가치
 
-Closet Backend는 고객에게 AI 기능을 별도로 사용하도록 요구하지 않습니다.
+Closer Backend는 고객에게 AI 기능을 별도로 사용하도록 요구하지 않습니다.
 
 대신 고객이 매장에서 자연스럽게 남기는 **동선, 상품 탐색, 피팅, Wishlist와 같은 행동을 하나의 데이터 흐름으로 연결**하고, 이를 실시간 추천과 Personalized Avatar에 반영합니다.
 
