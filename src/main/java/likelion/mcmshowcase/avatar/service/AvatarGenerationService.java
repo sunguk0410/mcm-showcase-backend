@@ -71,8 +71,9 @@ public class AvatarGenerationService {
 
         String baseAvatarUrl = toPublicUrl(styleProfile.getAvatarImageUrl());
         List<AvatarReferenceProduct> referenceProducts = createReferenceProducts(items);
-        String fluxImageUrl = fluxClient.generateAvatar(baseAvatarUrl, referenceProducts);
-        String finalImageUrl = removeBackgroundOrUseOriginal(fluxImageUrl);
+        String fluxImageUrl = generateAvatarWithTiming(
+                styleProfileId, baseAvatarUrl, referenceProducts);
+        String finalImageUrl = removeBackground(fluxImageUrl);
         byte[] generatedImage = fluxClient.downloadGeneratedImage(finalImageUrl);
         String relativeImageUrl = saveGeneratedImage(styleProfileId, generatedImage);
 
@@ -81,20 +82,54 @@ public class AvatarGenerationService {
         return relativeImageUrl;
     }
 
-    private String removeBackgroundOrUseOriginal(String fluxImageUrl) {
+    private String generateAvatarWithTiming(
+            Long styleProfileId,
+            String baseAvatarUrl,
+            List<AvatarReferenceProduct> referenceProducts
+    ) {
+        long startedAt = System.nanoTime();
+        try {
+            String fluxImageUrl = fluxClient.generateAvatar(baseAvatarUrl, referenceProducts);
+            log.info(
+                    "FLUX avatar generation completed. styleProfileId={}, elapsedMs={}",
+                    styleProfileId,
+                    elapsedMillis(startedAt)
+            );
+            return fluxImageUrl;
+        } catch (RuntimeException exception) {
+            log.warn(
+                    "FLUX avatar generation failed. styleProfileId={}, elapsedMs={}",
+                    styleProfileId,
+                    elapsedMillis(startedAt)
+            );
+            throw exception;
+        }
+    }
+
+    private String removeBackground(String fluxImageUrl) {
+        long startedAt = System.nanoTime();
         try {
             log.info("Avatar background removal started. imageUrl={}", fluxImageUrl);
             String transparentImageUrl = pythonImageClient.removeBackground(fluxImageUrl);
-            log.info("Avatar background removal completed. imageUrl={}", transparentImageUrl);
+            log.info(
+                    "Avatar background removal completed. imageUrl={}, elapsedMs={}",
+                    transparentImageUrl,
+                    elapsedMillis(startedAt)
+            );
             return transparentImageUrl;
         } catch (RuntimeException exception) {
-            log.warn(
-                    "Avatar background removal failed. Using original FLUX image. imageUrl={}",
+            log.error(
+                    "Avatar background removal failed. imageUrl={}, elapsedMs={}",
                     fluxImageUrl,
+                    elapsedMillis(startedAt),
                     exception
             );
-            return fluxImageUrl;
+            throw exception;
         }
+    }
+
+    private long elapsedMillis(long startedAt) {
+        return (System.nanoTime() - startedAt) / 1_000_000;
     }
 
     private List<AvatarReferenceProduct> createReferenceProducts(List<TodayLookItem> items) {

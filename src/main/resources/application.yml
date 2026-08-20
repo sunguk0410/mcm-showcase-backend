@@ -24,19 +24,19 @@ spring:
 recommendation:
   python:
     base-url: ${RECOMMENDATION_PYTHON_BASE_URL:http://localhost:8000}
-    connect-timeout: ${RECOMMENDATION_PYTHON_CONNECT_TIMEOUT:2s}
-    read-timeout: ${RECOMMENDATION_PYTHON_READ_TIMEOUT:5s}
-    avatar-read-timeout: ${RECOMMENDATION_PYTHON_AVATAR_READ_TIMEOUT:15s}
-    image-connect-timeout: ${RECOMMENDATION_PYTHON_IMAGE_CONNECT_TIMEOUT:5s}
-    image-read-timeout: ${RECOMMENDATION_PYTHON_IMAGE_READ_TIMEOUT:60s}
-    evaluation-read-timeout: ${RECOMMENDATION_PYTHON_EVALUATION_READ_TIMEOUT:60s}
+    connect-timeout: ${RECOMMENDATION_PYTHON_CONNECT_TIMEOUT:15s}
+    read-timeout: ${RECOMMENDATION_PYTHON_READ_TIMEOUT:60s}
+    avatar-read-timeout: ${RECOMMENDATION_PYTHON_AVATAR_READ_TIMEOUT:180s}
+    image-connect-timeout: ${RECOMMENDATION_PYTHON_IMAGE_CONNECT_TIMEOUT:15s}
+    image-read-timeout: ${RECOMMENDATION_PYTHON_IMAGE_READ_TIMEOUT:180s}
+    evaluation-read-timeout: ${RECOMMENDATION_PYTHON_EVALUATION_READ_TIMEOUT:180s}
 
 flux:
   api-key: ${BFL_API_KEY:}
   base-url: ${BFL_BASE_URL:https://api.bfl.ai}
   model-path: ${BFL_MODEL_PATH:/v1/flux-2-pro-preview}
-  connect-timeout: ${BFL_CONNECT_TIMEOUT:5s}
-  read-timeout: ${BFL_READ_TIMEOUT:30s}
-  polling-interval: ${BFL_POLLING_INTERVAL:500ms}
-  max-polling-duration: ${BFL_MAX_POLLING_DURATION:2m}
+  connect-timeout: ${BFL_CONNECT_TIMEOUT:15s}
+  read-timeout: ${BFL_READ_TIMEOUT:60s}
+  polling-interval: ${BFL_POLLING_INTERVAL:1s}
+  max-polling-duration: ${BFL_MAX_POLLING_DURATION:5m}
   generated-image-directory: ${AVATAR_IMAGE_STORAGE_DIR:/app/images/generated}
