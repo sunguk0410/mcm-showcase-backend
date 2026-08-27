@@ -2,14 +2,14 @@ package likelion.mcmshowcase.product.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "product")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Product {
+public class Product extends BaseEntity {
     @Id
     private Long id;
 
@@ -47,9 +47,4 @@ public class Product {
     @Column(name = "product_url", length = 1000)
     private String productUrl;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

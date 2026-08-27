@@ -3,13 +3,14 @@ package likelion.mcmshowcase.ar.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import likelion.mcmshowcase.product.entity.Product;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ar_interaction")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ArInteraction {
+public class ArInteraction extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -23,9 +24,6 @@ public class ArInteraction {
     private ArInteractionType interactionType;
     @Column(name = "sequence_no", nullable = false)
     private Integer sequenceNo;
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
     public static ArInteraction create(
             ArSession arSession,
             Product product,
@@ -38,7 +36,7 @@ public class ArInteraction {
         arInteraction.product = product;
         arInteraction.interactionType = interactionType;
         arInteraction.sequenceNo = sequenceNo;
-        arInteraction.createdAt = createdAt;
+        arInteraction.initializeAuditTimestamps(createdAt);
         return arInteraction;
     }
 }

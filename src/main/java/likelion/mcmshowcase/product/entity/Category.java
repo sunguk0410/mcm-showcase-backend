@@ -2,12 +2,13 @@ package likelion.mcmshowcase.product.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 
 @Entity
 @Table(name = "category")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Category {
+public class Category extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

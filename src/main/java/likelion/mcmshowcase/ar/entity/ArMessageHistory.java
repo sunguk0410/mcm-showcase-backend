@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ArMessageHistory {
+public class ArMessageHistory extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -44,9 +45,6 @@ public class ArMessageHistory {
     @Column(name = "fitting_sequence_no", nullable = false)
     private Integer fittingSequenceNo;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
     public static ArMessageHistory create(ArSession arSession, MessageTriggerType triggerType,
             String zone, InterestLevel interestLevel, String targetCategory,
             String messageId, String message, int fittingSequenceNo, LocalDateTime createdAt) {
@@ -59,7 +57,7 @@ public class ArMessageHistory {
         history.messageId = messageId;
         history.message = message;
         history.fittingSequenceNo = fittingSequenceNo;
-        history.createdAt = createdAt;
+        history.initializeAuditTimestamps(createdAt);
         return history;
     }
 }

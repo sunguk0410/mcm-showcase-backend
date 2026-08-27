@@ -3,12 +3,13 @@ package likelion.mcmshowcase.closet.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import likelion.mcmshowcase.product.entity.Product;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 
 @Entity
 @Table(name = "today_look_item")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TodayLookItem {
+public class TodayLookItem extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

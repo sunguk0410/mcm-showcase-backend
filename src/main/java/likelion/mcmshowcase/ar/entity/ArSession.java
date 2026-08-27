@@ -2,6 +2,7 @@ package likelion.mcmshowcase.ar.entity;
 
 import jakarta.persistence.*;
 import likelion.mcmshowcase.global.enums.Gender;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 import likelion.mcmshowcase.member.entity.Member;
 import lombok.*;
 import likelion.mcmshowcase.visit.entity.CustomerSession;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "ar_session")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ArSession {
+public class ArSession extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,9 +28,6 @@ public class ArSession {
     private LocalDateTime startedAt;
     @Column(name = "ended_at")
     private LocalDateTime endedAt;
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
     public static ArSession create(LocalDateTime createdAt) {
         ArSession arSession = new ArSession();
         arSession.customerSession = null;
@@ -37,7 +35,7 @@ public class ArSession {
         arSession.gender = null;
         arSession.startedAt = createdAt;
         arSession.endedAt = null;
-        arSession.createdAt = createdAt;
+        arSession.initializeAuditTimestamps(createdAt);
         return arSession;
     }
 

@@ -3,13 +3,14 @@ package likelion.mcmshowcase.member.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import likelion.mcmshowcase.product.entity.Product;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member_purchase")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberPurchase {
+public class MemberPurchase extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

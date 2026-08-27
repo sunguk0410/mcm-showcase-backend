@@ -3,13 +3,14 @@ package likelion.mcmshowcase.closet.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import likelion.mcmshowcase.ar.entity.ArSession;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "style_profile")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StyleProfile {
+public class StyleProfile extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -19,9 +20,6 @@ public class StyleProfile {
     private String styleIdentityTitle;
     @Column(name = "avatar_image_url", length = 500, nullable = false)
     private String avatarImageUrl;
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
     public static StyleProfile create(
             ArSession arSession,
             String styleIdentityTitle,
@@ -32,7 +30,7 @@ public class StyleProfile {
         styleProfile.arSession = arSession;
         styleProfile.styleIdentityTitle = styleIdentityTitle;
         styleProfile.avatarImageUrl = avatarImageUrl;
-        styleProfile.createdAt = createdAt;
+        styleProfile.initializeAuditTimestamps(createdAt);
         return styleProfile;
     }
 

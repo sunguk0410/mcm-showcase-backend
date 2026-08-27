@@ -3,12 +3,13 @@ package likelion.mcmshowcase.visit.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import likelion.mcmshowcase.product.entity.Category;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 
 @Entity
 @Table(name = "zone_category", uniqueConstraints = @UniqueConstraint(columnNames = {"zone_id", "category_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ZoneCategory {
+public class ZoneCategory extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

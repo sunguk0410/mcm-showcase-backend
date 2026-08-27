@@ -2,13 +2,14 @@ package likelion.mcmshowcase.visit.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "zone_interaction")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ZoneInteraction {
+public class ZoneInteraction extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -23,9 +24,6 @@ public class ZoneInteraction {
     private LocalDateTime exitedAt;
     @Column(name = "dwell_seconds")
     private Integer dwellSeconds;
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
     public static ZoneInteraction create(
             CustomerSession customerSession,
             ZoneCategory zoneCategory,
@@ -39,7 +37,7 @@ public class ZoneInteraction {
         interaction.enteredAt = enteredAt;
         interaction.exitedAt = exitedAt;
         interaction.dwellSeconds = dwellSeconds;
-        interaction.createdAt = LocalDateTime.now();
+        interaction.initializeAuditTimestamps(LocalDateTime.now());
         return interaction;
     }
 }

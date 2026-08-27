@@ -2,14 +2,14 @@ package likelion.mcmshowcase.member.entity;
 
 import jakarta.persistence.*;
 import likelion.mcmshowcase.global.enums.Gender;
+import likelion.mcmshowcase.global.entity.BaseEntity;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "external_member_id", length = 100, nullable = false, unique = true)
@@ -23,8 +23,4 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", length = 20)
     private Gender gender;
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }
