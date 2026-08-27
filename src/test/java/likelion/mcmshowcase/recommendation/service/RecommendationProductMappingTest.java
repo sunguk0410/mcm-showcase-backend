@@ -42,6 +42,7 @@ class RecommendationProductMappingTest {
     @Mock ZoneInteractionRepository zoneInteractionRepository;
     @Mock MemberWishlistRepository memberWishlistRepository;
     @Mock PythonRecommendationClient pythonRecommendationClient;
+    @Mock AvatarLookPersistenceService avatarLookPersistenceService;
     @Mock StyleProfileRepository styleProfileRepository;
     @Mock TodayLookRepository todayLookRepository;
     @Mock TodayLookItemRepository todayLookItemRepository;

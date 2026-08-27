@@ -7,12 +7,6 @@ import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.ar.service.ArFittingImageService;
 import likelion.mcmshowcase.avatar.service.AvatarGenerationService;
-import likelion.mcmshowcase.closet.entity.StyleProfile;
-import likelion.mcmshowcase.closet.entity.TodayLook;
-import likelion.mcmshowcase.closet.entity.TodayLookItem;
-import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
-import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
-import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberWishlistRepository;
 import likelion.mcmshowcase.product.entity.Product;
@@ -37,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -59,37 +52,26 @@ public class RecommendationService {
     private final ZoneInteractionRepository zoneInteractionRepository;
     private final MemberWishlistRepository memberWishlistRepository;
     private final PythonRecommendationClient pythonRecommendationClient;
-    private final StyleProfileRepository styleProfileRepository;
-    private final TodayLookRepository todayLookRepository;
-    private final TodayLookItemRepository todayLookItemRepository;
+    private final AvatarLookPersistenceService avatarLookPersistenceService;
     private final AvatarGenerationService avatarGenerationService;
 
-    @Transactional
     public AvatarLookResponse createAvatarLook(Long arSessionId) {
         String stage = "request-start";
         Long styleProfileId = null;
         log.info("Avatar look started. arSessionId={}", arSessionId);
         try {
-            stage = "ar-session-lookup";
-            ArSession arSession = arSessionRepository.findByIdForUpdate(arSessionId)
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
-            log.info("ArSession lookup completed. arSessionId={}", arSessionId);
-
-            stage = "style-profile-lookup";
-            StyleProfile existingStyleProfile = styleProfileRepository
-                    .findTopByArSessionOrderByCreatedAtDesc(arSession)
-                    .orElse(null);
-            if (existingStyleProfile != null) {
-                styleProfileId = existingStyleProfile.getId();
+            stage = "avatar-look-context-load";
+            AvatarLookContext context = avatarLookPersistenceService.loadContext(arSessionId);
+            if (context.hasStyleProfile()) {
+                styleProfileId = context.styleProfileId();
                 log.info(
                         "StyleProfile ready. arSessionId={}, styleProfileId={}",
                         arSessionId,
                         styleProfileId
                 );
                 String avatarImageUrl;
-                if (isGeneratedAvatar(existingStyleProfile.getAvatarImageUrl())) {
-                    avatarImageUrl = existingStyleProfile.getAvatarImageUrl();
+                if (context.hasGeneratedAvatar()) {
+                    avatarImageUrl = context.avatarImageUrl();
                     log.info(
                             "FLUX avatar generation skipped; generated avatar already exists. "
                                     + "styleProfileId={}",
@@ -116,7 +98,7 @@ public class RecommendationService {
             stage = "python-avatar-look-request";
             log.info("Python avatar look request started. arSessionId={}", arSessionId);
             PythonAvatarLookResponse pythonResponse = pythonRecommendationClient.createAvatarLook(
-                    new PythonAvatarLookRequest(arSessionId, getArInteractions(arSession))
+                    new PythonAvatarLookRequest(arSessionId, context.interactions())
             );
             if (!arSessionId.equals(pythonResponse.arSessionId())) {
                 throw new ResponseStatusException(
@@ -125,68 +107,26 @@ public class RecommendationService {
                 );
             }
 
-            List<Long> productIds = pythonResponse.products().stream()
-                    .map(PythonAvatarLookResponse.Product::productId)
-                    .toList();
             log.info(
                     "Python avatar look response received. arSessionId={}, productCount={}",
                     arSessionId,
-                    productIds.size()
-            );
-            if (productIds.isEmpty()) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_GATEWAY,
-                        "Recommendation server returned an empty Avatar Look"
-                );
-            }
-
-            stage = "product-lookup";
-            Map<Long, Product> productsById = productRepository.findAllById(productIds).stream()
-                    .collect(Collectors.toMap(Product::getId, Function.identity()));
-            List<Product> orderedProducts = productIds.stream()
-                    .map(productId -> {
-                        Product product = productsById.get(productId);
-                        if (product == null) {
-                            throw new ResponseStatusException(
-                                    HttpStatus.NOT_FOUND, "Product not found: " + productId);
-                        }
-                        return product;
-                    })
-                    .toList();
-            log.info(
-                    "Product lookup completed. arSessionId={}, productCount={}",
-                    arSessionId,
-                    orderedProducts.size()
+                    pythonResponse.products().size()
             );
 
-            stage = "style-profile-create";
-            LocalDateTime now = LocalDateTime.now();
-            String avatarImageUrl = resolveAvatarImageUrl(arSession);
-            StyleProfile styleProfile = styleProfileRepository.save(
-                    StyleProfile.create(
-                            arSession, pythonResponse.styleIdentityTitle(), avatarImageUrl, now)
-            );
-            styleProfileId = styleProfile.getId();
+            stage = "avatar-look-save";
+            PreparedAvatarLook prepared = avatarLookPersistenceService.saveRecommendation(
+                    arSessionId, pythonResponse);
+            styleProfileId = prepared.styleProfileId();
             log.info(
                     "StyleProfile ready. arSessionId={}, styleProfileId={}",
                     arSessionId,
                     styleProfileId
             );
 
-            stage = "today-look-save";
-            TodayLook todayLook = todayLookRepository.save(TodayLook.create(styleProfile, now));
-            List<TodayLookItem> items = java.util.stream.IntStream
-                    .range(0, orderedProducts.size())
-                    .mapToObj(index -> TodayLookItem.create(
-                            todayLook, orderedProducts.get(index), index + 1))
-                    .toList();
-            todayLookItemRepository.saveAll(items);
-            todayLookItemRepository.flush();
-            log.info(
-                    "TodayLook saved. styleProfileId={}, itemCount={}",
-                    styleProfileId,
-                    items.size()
-            );
+            if (prepared.hasGeneratedAvatar()) {
+                return new AvatarLookResponse(
+                        arSessionId, styleProfileId, prepared.avatarImageUrl());
+            }
 
             stage = "flux-avatar-generation";
             log.info("FLUX avatar generation started. styleProfileId={}", styleProfileId);
@@ -213,11 +153,6 @@ public class RecommendationService {
             );
             throw exception;
         }
-    }
-
-    private boolean isGeneratedAvatar(String avatarImageUrl) {
-        return avatarImageUrl != null
-                && avatarImageUrl.startsWith("/images/generated/");
     }
 
     @Transactional(readOnly = true)
@@ -373,19 +308,6 @@ public class RecommendationService {
                 product.getProductUrl(),
                 score
         );
-    }
-
-    private String resolveAvatarImageUrl(ArSession arSession) {
-        if (arSession.getGender() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Gender is not set for ArSession: " + arSession.getId()
-            );
-        }
-        return switch (arSession.getGender()) {
-            case MALE -> "/images/avatars/male.png";
-            case FEMALE -> "/images/avatars/female.png";
-        };
     }
 
     private String toZoneCode(ZoneInteraction interaction) {
