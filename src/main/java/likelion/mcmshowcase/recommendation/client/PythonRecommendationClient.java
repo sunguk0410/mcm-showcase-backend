@@ -1,12 +1,13 @@
 package likelion.mcmshowcase.recommendation.client;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.recommendation.dto.PythonInitialPreferenceRequest;
 import likelion.mcmshowcase.recommendation.dto.PythonAvatarLookRequest;
 import likelion.mcmshowcase.recommendation.dto.PythonAvatarLookResponse;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationRequest;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpServerErrorException;
@@ -14,7 +15,6 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 
@@ -71,14 +71,11 @@ public class PythonRecommendationClient {
             }
             return response;
         } catch (HttpServerErrorException | ResourceAccessException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Recommendation server unavailable"
-            );
+            throw unavailable(exception);
         } catch (RestClientResponseException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
@@ -90,11 +87,11 @@ public class PythonRecommendationClient {
                     .retrieve()
                     .toBodilessEntity();
         } catch (HttpServerErrorException | ResourceAccessException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientResponseException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
@@ -117,25 +114,21 @@ public class PythonRecommendationClient {
             }
             return response;
         } catch (HttpServerErrorException | ResourceAccessException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientResponseException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
-    private ResponseStatusException invalidResponse() {
-        return new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Recommendation server unavailable"
-        );
+    private CustomException invalidResponse() {
+        return new CustomException(ErrorCode.RECOMMENDATION_SERVER_INVALID_RESPONSE);
     }
 
-    private ResponseStatusException unavailable() {
-        return new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Recommendation server unavailable"
-        );
+    private CustomException unavailable(Exception cause) {
+        return new CustomException(
+                ErrorCode.RECOMMENDATION_SERVER_UNAVAILABLE,
+                cause.getClass().getSimpleName() + ": " + cause.getMessage());
     }
 }

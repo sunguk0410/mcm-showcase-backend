@@ -1,17 +1,17 @@
 package likelion.mcmshowcase.avatar.client;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import likelion.mcmshowcase.avatar.dto.AvatarReferenceProduct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.time.Duration;
@@ -195,8 +195,7 @@ public class FluxClient {
                 throw unavailable("FLUX image generation failed");
             }
         }
-        throw new ResponseStatusException(
-                HttpStatus.GATEWAY_TIMEOUT, "FLUX image generation timed out");
+        throw new CustomException(ErrorCode.FLUX_GENERATION_TIMEOUT);
     }
 
     Map<String, Object> createRequestBody(
@@ -301,18 +300,16 @@ public class FluxClient {
 
     private void validateConfiguration() {
         if (apiKey == null || apiKey.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "BFL_API_KEY is not configured");
+            throw new CustomException(ErrorCode.FLUX_API_KEY_NOT_CONFIGURED);
         }
     }
 
-    private ResponseStatusException invalidResponse() {
-        return new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY, "FLUX API returned an invalid response");
+    private CustomException invalidResponse() {
+        return new CustomException(ErrorCode.FLUX_INVALID_RESPONSE);
     }
 
-    private ResponseStatusException unavailable(String message) {
-        return new ResponseStatusException(HttpStatus.BAD_GATEWAY, message);
+    private CustomException unavailable(String message) {
+        return new CustomException(ErrorCode.FLUX_SERVER_UNAVAILABLE, message);
     }
 
     private record FluxSubmitResponse(

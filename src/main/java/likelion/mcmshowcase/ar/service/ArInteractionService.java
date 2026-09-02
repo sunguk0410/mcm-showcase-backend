@@ -1,5 +1,7 @@
 package likelion.mcmshowcase.ar.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.ar.dto.ArInteractionCreateRequest;
 import likelion.mcmshowcase.ar.dto.ArInteractionCreateResponse;
 import likelion.mcmshowcase.ar.entity.ArInteraction;
@@ -13,10 +15,8 @@ import likelion.mcmshowcase.member.repository.MemberWishlistRepository;
 import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -33,17 +33,16 @@ public class ArInteractionService {
     @Transactional
     public ArInteractionCreateResponse create(ArInteractionCreateRequest request) {
         ArSession arSession = arSessionRepository.findById(request.arSessionId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + request.arSessionId()));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.AR_SESSION_NOT_FOUND, "ArSession not found: " + request.arSessionId()));
 
         if (arSession.getEndedAt() != null) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "ArInteraction cannot be added to an ended ArSession");
+            throw new CustomException(ErrorCode.INTERACTION_ON_ENDED_AR_SESSION);
         }
 
         Product product = productRepository.findById(request.productId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Product not found: " + request.productId()));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.PRODUCT_NOT_FOUND, "Product not found: " + request.productId()));
 
         int sequenceNo = arInteractionRepository.findTopByArSessionOrderBySequenceNoDesc(arSession)
                 .map(interaction -> interaction.getSequenceNo() + 1)

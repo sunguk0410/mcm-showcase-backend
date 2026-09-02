@@ -1,14 +1,14 @@
 package likelion.mcmshowcase.recommendation.evaluation.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
 import likelion.mcmshowcase.recommendation.evaluation.dto.RecommendationEvaluationRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -104,6 +104,6 @@ public class RecommendationEvaluationValidator {
     }
 
     private void badRequest(String message) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        throw new CustomException(ErrorCode.INVALID_RECOMMENDATION_EVALUATION_REQUEST, message);
     }
 }

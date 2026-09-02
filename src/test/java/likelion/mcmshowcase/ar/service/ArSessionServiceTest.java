@@ -5,6 +5,8 @@ import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.global.enums.Gender;
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.recommendation.service.RecommendationService;
@@ -18,8 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -64,11 +64,11 @@ class ArSessionServiceTest {
                         any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        CustomException exception = assertThrows(
+                CustomException.class,
                 () -> arSessionService.getLatestActiveUnlinkedSession());
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(ErrorCode.ACTIVE_AR_SESSION_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test

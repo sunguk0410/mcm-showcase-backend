@@ -12,6 +12,8 @@ import likelion.mcmshowcase.closet.entity.TodayLookItem;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookRepository;
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.product.entity.Product;
@@ -20,9 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -147,12 +147,12 @@ class MyClosetServiceTest {
                 .thenReturn(Optional.of(styleProfile(7L, arSession)));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(requestedMember));
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        CustomException exception = assertThrows(
+                CustomException.class,
                 () -> myClosetService.linkMember(7L, new MyClosetMemberLinkRequest(1L))
         );
 
-        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertEquals(ErrorCode.AR_SESSION_MEMBER_CONFLICT, exception.getErrorCode());
         verify(arSessionRepository, never()).save(any());
     }
 
@@ -160,12 +160,12 @@ class MyClosetServiceTest {
     void missingStyleProfileReturnsNotFound() {
         when(styleProfileRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        CustomException exception = assertThrows(
+                CustomException.class,
                 () -> myClosetService.linkMember(99L, new MyClosetMemberLinkRequest(1L))
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(ErrorCode.STYLE_PROFILE_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -174,12 +174,12 @@ class MyClosetServiceTest {
                 .thenReturn(Optional.of(styleProfile(7L, arSession(34L))));
         when(memberRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        CustomException exception = assertThrows(
+                CustomException.class,
                 () -> myClosetService.linkMember(7L, new MyClosetMemberLinkRequest(99L))
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(ErrorCode.MEMBER_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test

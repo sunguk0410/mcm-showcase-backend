@@ -1,15 +1,15 @@
 package likelion.mcmshowcase.recommendation.evaluation.client;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.recommendation.evaluation.dto.RecommendationEvaluationRequest;
 import likelion.mcmshowcase.recommendation.evaluation.dto.RecommendationEvaluationResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 
@@ -38,26 +38,24 @@ public class PythonRecommendationEvaluationClient {
                     .retrieve()
                     .body(RecommendationEvaluationResponse.class);
             if (response == null || response.summary() == null || response.personas() == null) {
-                throw unavailable();
+                throw new CustomException(ErrorCode.RECOMMENDATION_EVALUATION_SERVER_UNAVAILABLE);
             }
             return response;
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().is4xxClientError()) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Invalid recommendation evaluation request"
-                );
+                throw new CustomException(
+                        ErrorCode.INVALID_RECOMMENDATION_EVALUATION_REQUEST,
+                        exception.getMessage());
             }
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
-    private ResponseStatusException unavailable() {
-        return new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
-                "Recommendation evaluation server unavailable"
-        );
+    private CustomException unavailable(Exception cause) {
+        return new CustomException(
+                ErrorCode.RECOMMENDATION_EVALUATION_SERVER_UNAVAILABLE,
+                cause.getClass().getSimpleName() + ": " + cause.getMessage());
     }
 }

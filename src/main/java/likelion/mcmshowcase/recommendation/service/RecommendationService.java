@@ -1,5 +1,7 @@
 package likelion.mcmshowcase.recommendation.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.ar.entity.ArInteraction;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
@@ -25,10 +27,8 @@ import likelion.mcmshowcase.visit.entity.ZoneInteraction;
 import likelion.mcmshowcase.visit.repository.ZoneInteractionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -101,10 +101,7 @@ public class RecommendationService {
                     new PythonAvatarLookRequest(arSessionId, context.interactions())
             );
             if (!arSessionId.equals(pythonResponse.arSessionId())) {
-                throw new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Recommendation server returned an invalid response"
-                );
+                throw new CustomException(ErrorCode.RECOMMENDATION_SERVER_INVALID_RESPONSE);
             }
 
             log.info(
@@ -163,10 +160,9 @@ public class RecommendationService {
         List<PythonInitialPreferenceRequest.MemberInteraction> memberInteractions =
                 getMemberInteractions(arSession);
         if (zoneInteractions.isEmpty() && memberInteractions.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Recommendation preference data not found for ArSession: " + arSessionId
-            );
+            throw new CustomException(
+                    ErrorCode.RECOMMENDATION_DATA_NOT_FOUND,
+                    "Recommendation preference data not found for ArSession: " + arSessionId);
         }
 
         pythonRecommendationClient.initializePreferences(
@@ -192,10 +188,9 @@ public class RecommendationService {
     ) {
         ArSession arSession = findArSession(arSessionId);
         if (arSession.getGender() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Gender is not set for ArSession: " + arSession.getId()
-            );
+            throw new CustomException(
+                    ErrorCode.AR_SESSION_GENDER_NOT_SET,
+                    "Gender is not set for ArSession: " + arSession.getId());
         }
 
         List<PythonRecommendationInteraction> interactions = includeArInteractions
@@ -233,8 +228,8 @@ public class RecommendationService {
 
     private ArSession findArSession(Long arSessionId) {
         return arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.AR_SESSION_NOT_FOUND, "ArSession not found: " + arSessionId));
     }
 
     private List<PythonRecommendationInteraction> getArInteractions(ArSession arSession) {

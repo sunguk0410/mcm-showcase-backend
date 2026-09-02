@@ -1,14 +1,14 @@
 package likelion.mcmshowcase.testapi.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
 import likelion.mcmshowcase.testapi.dto.LatestAvatarImageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +22,7 @@ public class TestAvatarImageService {
                 .findLatestWithAvatarImage(PageRequest.of(0, 1))
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Avatar image not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.AVATAR_IMAGE_NOT_FOUND));
 
         return new LatestAvatarImageResponse(
                 styleProfile.getId(),

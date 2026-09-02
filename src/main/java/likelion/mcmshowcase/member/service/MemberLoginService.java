@@ -4,11 +4,11 @@ import likelion.mcmshowcase.member.dto.MemberLoginRequest;
 import likelion.mcmshowcase.member.dto.MemberLoginResponse;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -46,7 +46,7 @@ public class MemberLoginService {
         }
     }
 
-    private ResponseStatusException unauthorized() {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid login credentials.");
+    private CustomException unauthorized() {
+        return new CustomException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
     }
 }

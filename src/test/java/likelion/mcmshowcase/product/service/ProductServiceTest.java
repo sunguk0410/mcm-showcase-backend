@@ -1,5 +1,7 @@
 package likelion.mcmshowcase.product.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.product.entity.Product;
 import likelion.mcmshowcase.product.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +48,19 @@ class ProductServiceTest {
 
         assertEquals("한국어 상품명", response.name());
         assertNull(response.nameEn());
+    }
+
+    @Test
+    void productDetailThrowsCustomExceptionWhenProductDoesNotExist() {
+        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> productService.getProductDetail(99L)
+        );
+
+        assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
+        assertEquals("Product not found: 99", exception.getDetail());
     }
 
     private Product product(String name, String nameEn) {

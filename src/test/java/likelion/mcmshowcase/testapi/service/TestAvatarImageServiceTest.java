@@ -3,6 +3,8 @@ package likelion.mcmshowcase.testapi.service;
 import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.closet.entity.StyleProfile;
 import likelion.mcmshowcase.closet.repository.StyleProfileRepository;
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -10,9 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,12 +57,11 @@ class TestAvatarImageServiceTest {
         when(styleProfileRepository.findLatestWithAvatarImage(Pageable.ofSize(1)))
                 .thenReturn(List.of());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
+        CustomException exception = assertThrows(
+                CustomException.class,
                 testAvatarImageService::getLatestAvatarImage
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        assertEquals("Avatar image not found", exception.getReason());
+        assertEquals(ErrorCode.AVATAR_IMAGE_NOT_FOUND, exception.getErrorCode());
     }
 }

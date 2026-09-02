@@ -16,6 +16,8 @@ import likelion.mcmshowcase.ar.entity.ArSession;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.recommendation.service.RecommendationService;
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
 import likelion.mcmshowcase.visit.entity.CustomerSession;
@@ -24,12 +26,10 @@ import likelion.mcmshowcase.visit.repository.CustomerSessionRepository;
 import likelion.mcmshowcase.visit.repository.ZoneInteractionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -58,8 +58,7 @@ public class ArSessionService {
         ArSession arSession = arSessionRepository
                 .findFirstByCustomerSessionIsNullAndEndedAtIsNullAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
                         createdAfter)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Active unlinked ArSession not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACTIVE_AR_SESSION_NOT_FOUND));
 
         return new LatestActiveArSessionResponse(arSession.getId());
     }
@@ -67,8 +66,7 @@ public class ArSessionService {
     @Transactional(readOnly = true)
     public ArSessionMemberStatusResponse getMemberStatus(Long arSessionId) {
         ArSession arSession = arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> arSessionNotFound(arSessionId));
         Long memberId = arSession.getMember() == null
                 ? null
                 : arSession.getMember().getId();
@@ -82,16 +80,14 @@ public class ArSessionService {
     @Transactional
     public ArSessionMemberResponse mapMember(Long arSessionId, ArSessionMemberRequest request) {
         ArSession arSession = arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> arSessionNotFound(arSessionId));
         Member member = memberRepository.findById(request.memberId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Member not found: " + request.memberId()));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.MEMBER_NOT_FOUND, "Member not found: " + request.memberId()));
 
         if (arSession.getMember() != null
                 && !arSession.getMember().getId().equals(member.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "ArSession is already mapped to another Member");
+            throw new CustomException(ErrorCode.AR_SESSION_MEMBER_CONFLICT);
         }
 
         arSession.mapMember(member);
@@ -110,8 +106,7 @@ public class ArSessionService {
     @Transactional(readOnly = true)
     public ProductSelectHistoryResponse getProductSelectHistory(Long arSessionId) {
         ArSession arSession = arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> arSessionNotFound(arSessionId));
 
         List<ProductSelectHistoryResponse.Product> products = arInteractionRepository
                 .findByArSessionAndInteractionTypeOrderBySequenceNoAsc(
@@ -147,17 +142,15 @@ public class ArSessionService {
     @Transactional
     public ArSessionEndResponse end(Long arSessionId) {
         ArSession arSession = arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> arSessionNotFound(arSessionId));
 
         if (arSession.getEndedAt() != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "ArSession is already ended");
+            throw new CustomException(ErrorCode.AR_SESSION_ALREADY_ENDED);
         }
 
         LocalDateTime endedAt = LocalDateTime.now();
         if (endedAt.isBefore(arSession.getStartedAt())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "ArSession cannot end before its startedAt");
+            throw new CustomException(ErrorCode.INVALID_AR_SESSION_END_TIME);
         }
 
         arSession.end(endedAt);
@@ -175,8 +168,7 @@ public class ArSessionService {
     @Transactional
     public ArSessionGenderResponse setGender(Long arSessionId, ArSessionGenderRequest request) {
         ArSession arSession = arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> arSessionNotFound(arSessionId));
 
         arSession.setGender(request.gender());
 
@@ -189,26 +181,19 @@ public class ArSessionService {
             ArSessionCustomerSessionRequest request
     ) {
         ArSession arSession = arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> arSessionNotFound(arSessionId));
         CustomerSession customerSession = customerSessionRepository
                 .findById(request.customerSessionId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.CUSTOMER_SESSION_NOT_FOUND,
                         "CustomerSession not found: " + request.customerSessionId()));
 
         if (customerSession.getStatus() != CustomerSessionStatus.ACTIVE) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Only an active CustomerSession can be mapped to an ArSession"
-            );
+            throw new CustomException(ErrorCode.INACTIVE_CUSTOMER_SESSION);
         }
         if (arSession.getCustomerSession() != null
                 && !arSession.getCustomerSession().getId().equals(customerSession.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "ArSession is already mapped to another CustomerSession"
-            );
+            throw new CustomException(ErrorCode.AR_SESSION_CUSTOMER_CONFLICT);
         }
 
         arSession.mapCustomerSession(customerSession);
@@ -240,6 +225,13 @@ public class ArSessionService {
                 }
             }
         });
+    }
+
+    private CustomException arSessionNotFound(Long arSessionId) {
+        return new CustomException(
+                ErrorCode.AR_SESSION_NOT_FOUND,
+                "ArSession not found: " + arSessionId
+        );
     }
 
 }

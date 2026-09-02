@@ -1,5 +1,7 @@
 package likelion.mcmshowcase.ar.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.ar.dto.ArMessageEvaluateResponse;
 import likelion.mcmshowcase.ar.entity.*;
 import likelion.mcmshowcase.ar.repository.ArInteractionRepository;
@@ -7,10 +9,8 @@ import likelion.mcmshowcase.ar.repository.ArMessageHistoryRepository;
 import likelion.mcmshowcase.ar.repository.ArSessionRepository;
 import likelion.mcmshowcase.product.entity.Product;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -47,8 +47,8 @@ public class ArMessageService {
     @Transactional
     public ArMessageEvaluateResponse evaluate(Long arSessionId, Locale locale) {
         ArSession session = arSessionRepository.findByIdForUpdate(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.AR_SESSION_NOT_FOUND, "ArSession not found: " + arSessionId));
         List<ArInteraction> interactionHistory = arInteractionRepository
                 .findByArSessionOrderBySequenceNoAsc(session);
         List<ArInteraction> fittings = arFittingImageService

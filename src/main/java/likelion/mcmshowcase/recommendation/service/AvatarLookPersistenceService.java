@@ -1,5 +1,7 @@
 package likelion.mcmshowcase.recommendation.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.ar.entity.ArInteraction;
 import likelion.mcmshowcase.ar.entity.ArInteractionType;
 import likelion.mcmshowcase.ar.entity.ArSession;
@@ -17,10 +19,8 @@ import likelion.mcmshowcase.product.repository.ProductRepository;
 import likelion.mcmshowcase.recommendation.dto.PythonAvatarLookResponse;
 import likelion.mcmshowcase.recommendation.dto.PythonRecommendationInteraction;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -62,8 +62,8 @@ public class AvatarLookPersistenceService {
             PythonAvatarLookResponse response
     ) {
         ArSession arSession = arSessionRepository.findByIdForUpdate(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.AR_SESSION_NOT_FOUND, "ArSession not found: " + arSessionId));
 
         StyleProfile existing = styleProfileRepository
                 .findTopByArSessionOrderByCreatedAtDesc(arSession)
@@ -76,10 +76,7 @@ public class AvatarLookPersistenceService {
                 .map(PythonAvatarLookResponse.Product::productId)
                 .toList();
         if (productIds.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY,
-                    "Recommendation server returned an empty Avatar Look"
-            );
+            throw new CustomException(ErrorCode.RECOMMENDATION_EMPTY_AVATAR_LOOK);
         }
 
         Map<Long, Product> productsById = productRepository.findAllById(productIds).stream()
@@ -108,8 +105,8 @@ public class AvatarLookPersistenceService {
 
     private ArSession findArSession(Long arSessionId) {
         return arSessionRepository.findById(arSessionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "ArSession not found: " + arSessionId));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.AR_SESSION_NOT_FOUND, "ArSession not found: " + arSessionId));
     }
 
     private List<PythonRecommendationInteraction> getArInteractions(ArSession arSession) {
@@ -129,18 +126,17 @@ public class AvatarLookPersistenceService {
     private Product requireProduct(Map<Long, Product> productsById, Long productId) {
         Product product = productsById.get(productId);
         if (product == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Product not found: " + productId);
+            throw new CustomException(
+                    ErrorCode.PRODUCT_NOT_FOUND, "Product not found: " + productId);
         }
         return product;
     }
 
     private String resolveAvatarImageUrl(ArSession arSession) {
         if (arSession.getGender() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Gender is not set for ArSession: " + arSession.getId()
-            );
+            throw new CustomException(
+                    ErrorCode.AR_SESSION_GENDER_NOT_SET,
+                    "Gender is not set for ArSession: " + arSession.getId());
         }
         return switch (arSession.getGender()) {
             case MALE -> "/images/avatars/male.png";

@@ -11,12 +11,12 @@ import likelion.mcmshowcase.closet.repository.TodayLookItemRepository;
 import likelion.mcmshowcase.closet.repository.TodayLookRepository;
 import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.repository.MemberRepository;
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.product.entity.Product;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -40,13 +40,12 @@ public class MyClosetService {
             MyClosetMemberLinkRequest request
     ) {
         StyleProfile styleProfile = styleProfileRepository.findById(styleProfileId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "StyleProfile not found: " + styleProfileId));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.STYLE_PROFILE_NOT_FOUND, "StyleProfile not found: " + styleProfileId));
         Member member = findMember(request.memberId());
         if (styleProfile.getArSession().getMember() != null
                 && !styleProfile.getArSession().getMember().getId().equals(member.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "ArSession is already mapped to another Member");
+            throw new CustomException(ErrorCode.AR_SESSION_MEMBER_CONFLICT);
         }
 
         styleProfile.getArSession().mapMember(member);
@@ -73,8 +72,8 @@ public class MyClosetService {
     @Transactional(readOnly = true)
     public MyClosetDetailResponse getMyClosetDetail(Long styleProfileId) {
         StyleProfile styleProfile = styleProfileRepository.findById(styleProfileId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "StyleProfile not found: " + styleProfileId));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.STYLE_PROFILE_NOT_FOUND, "StyleProfile not found: " + styleProfileId));
 
         List<ArInteraction> arInteractions = arInteractionRepository
                 .findByArSessionOrderBySequenceNoAsc(styleProfile.getArSession());
@@ -125,8 +124,8 @@ public class MyClosetService {
 
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Member not found: " + memberId));
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.MEMBER_NOT_FOUND, "Member not found: " + memberId));
     }
 
     private MyClosetProductResponse toProductResponse(

@@ -1,5 +1,7 @@
 package likelion.mcmshowcase.avatar.service;
 
+import likelion.mcmshowcase.global.exception.CustomException;
+import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.avatar.client.FluxClient;
 import likelion.mcmshowcase.avatar.client.PythonImageClient;
 import likelion.mcmshowcase.avatar.dto.AvatarGenerationInput;
@@ -7,9 +9,7 @@ import likelion.mcmshowcase.avatar.dto.AvatarReferenceProduct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -97,8 +97,7 @@ public class AvatarGenerationService {
         Path directory = Path.of(generatedImageDirectory).toAbsolutePath().normalize();
         Path target = directory.resolve("avatar-" + styleProfileId + ".png").normalize();
         if (!target.getParent().equals(directory)) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "Invalid avatar image storage path");
+            throw new CustomException(ErrorCode.INVALID_AVATAR_STORAGE_PATH);
         }
 
         try {
@@ -116,8 +115,7 @@ public class AvatarGenerationService {
                 Files.deleteIfExists(temporaryFile);
             }
         } catch (IOException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save generated avatar image");
+            throw new CustomException(ErrorCode.AVATAR_IMAGE_SAVE_FAILED, exception.getMessage());
         }
         return "/images/generated/avatar-" + styleProfileId + ".png";
     }
