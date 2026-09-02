@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.closet.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import likelion.mcmshowcase.closet.dto.MyClosetDetailResponse;
 import likelion.mcmshowcase.closet.dto.MyClosetListResponse;
@@ -24,22 +25,22 @@ public class MyClosetController {
     private final MyClosetService myClosetService;
 
     @GetMapping
-    public ResponseEntity<MyClosetListResponse> getMyCloset(@RequestParam Long memberId) {
-        return ResponseEntity.ok(myClosetService.getMyCloset(memberId));
+    public ResponseEntity<ApiResponse<MyClosetListResponse>> getMyCloset(@RequestParam Long memberId) {
+        return ResponseEntity.ok(ApiResponse.success(myClosetService.getMyCloset(memberId)));
     }
 
     @GetMapping("/{styleProfileId}")
-    public ResponseEntity<MyClosetDetailResponse> getMyClosetDetail(
+    public ResponseEntity<ApiResponse<MyClosetDetailResponse>> getMyClosetDetail(
             @PathVariable Long styleProfileId
     ) {
-        return ResponseEntity.ok(myClosetService.getMyClosetDetail(styleProfileId));
+        return ResponseEntity.ok(ApiResponse.success(myClosetService.getMyClosetDetail(styleProfileId)));
     }
 
     @PatchMapping("/{styleProfileId}/member")
-    public ResponseEntity<MyClosetMemberLinkResponse> linkMember(
+    public ResponseEntity<ApiResponse<MyClosetMemberLinkResponse>> linkMember(
             @PathVariable Long styleProfileId,
             @Valid @RequestBody MyClosetMemberLinkRequest request
     ) {
-        return ResponseEntity.ok(myClosetService.linkMember(styleProfileId, request));
+        return ResponseEntity.ok(ApiResponse.success(myClosetService.linkMember(styleProfileId, request)));
     }
 }

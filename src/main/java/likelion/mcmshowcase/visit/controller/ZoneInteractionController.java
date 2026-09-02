@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.visit.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import likelion.mcmshowcase.visit.dto.ZoneInteractionCreateRequest;
 import likelion.mcmshowcase.visit.dto.ZoneInteractionCreateResponse;
@@ -20,10 +21,10 @@ public class ZoneInteractionController {
     private final ZoneInteractionService zoneInteractionService;
 
     @PostMapping
-    public ResponseEntity<ZoneInteractionCreateResponse> create(
+    public ResponseEntity<ApiResponse<ZoneInteractionCreateResponse>> create(
             @Valid @RequestBody ZoneInteractionCreateRequest request
     ) {
         ZoneInteractionCreateResponse response = zoneInteractionService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 }

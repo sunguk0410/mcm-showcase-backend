@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.member.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import likelion.mcmshowcase.member.dto.MemberLoginRequest;
 import likelion.mcmshowcase.member.dto.MemberLoginResponse;
@@ -19,9 +20,9 @@ public class MemberController {
     private final MemberLoginService memberLoginService;
 
     @PostMapping("/login")
-    public ResponseEntity<MemberLoginResponse> login(
+    public ResponseEntity<ApiResponse<MemberLoginResponse>> login(
             @Valid @RequestBody MemberLoginRequest request
     ) {
-        return ResponseEntity.ok(memberLoginService.login(request));
+        return ResponseEntity.ok(ApiResponse.success(memberLoginService.login(request)));
     }
 }

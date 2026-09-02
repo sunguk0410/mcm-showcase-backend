@@ -10,6 +10,11 @@ public enum ErrorCode {
 
     INTERNAL_SERVER_ERROR("COMMON_001", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_INPUT_VALUE("COMMON_002", "입력값이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+    MALFORMED_JSON("COMMON_003", "요청 본문 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+    MISSING_REQUEST_PARAMETER("COMMON_004", "필수 요청값이 누락되었습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_PARAMETER_TYPE("COMMON_005", "요청값의 타입이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+    METHOD_NOT_ALLOWED("COMMON_006", "지원하지 않는 HTTP 메서드입니다.", HttpStatus.METHOD_NOT_ALLOWED),
+    API_NOT_FOUND("COMMON_007", "요청한 API를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     MEMBER_NOT_FOUND("MEMBER_001", "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_LOGIN_CREDENTIALS("MEMBER_002", "아이디 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),

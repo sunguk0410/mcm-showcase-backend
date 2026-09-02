@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.recommendation.evaluation.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import likelion.mcmshowcase.recommendation.evaluation.dto.RecommendationEvaluationRequest;
 import likelion.mcmshowcase.recommendation.evaluation.dto.RecommendationEvaluationResponse;
@@ -19,9 +20,9 @@ public class RecommendationEvaluationController {
     private final RecommendationEvaluationService evaluationService;
 
     @PostMapping("/recommendations")
-    public ResponseEntity<RecommendationEvaluationResponse> evaluate(
+    public ResponseEntity<ApiResponse<RecommendationEvaluationResponse>> evaluate(
             @Valid @RequestBody RecommendationEvaluationRequest request
     ) {
-        return ResponseEntity.ok(evaluationService.evaluate(request));
+        return ResponseEntity.ok(ApiResponse.success(evaluationService.evaluate(request)));
     }
 }

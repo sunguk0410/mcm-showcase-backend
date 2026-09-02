@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.ar.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import likelion.mcmshowcase.ar.dto.ArInteractionCreateRequest;
 import likelion.mcmshowcase.ar.dto.ArInteractionCreateResponse;
@@ -20,10 +21,10 @@ public class ArInteractionController {
     private final ArInteractionService arInteractionService;
 
     @PostMapping
-    public ResponseEntity<ArInteractionCreateResponse> create(
+    public ResponseEntity<ApiResponse<ArInteractionCreateResponse>> create(
             @Valid @RequestBody ArInteractionCreateRequest request
     ) {
         ArInteractionCreateResponse response = arInteractionService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 }

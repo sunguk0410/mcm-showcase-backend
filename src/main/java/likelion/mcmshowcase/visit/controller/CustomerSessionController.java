@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.visit.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import likelion.mcmshowcase.visit.dto.CustomerSessionCreateResponse;
 import likelion.mcmshowcase.visit.dto.CustomerSessionEndResponse;
 import likelion.mcmshowcase.visit.service.CustomerSessionService;
@@ -20,15 +21,15 @@ public class CustomerSessionController {
     private final CustomerSessionService customerSessionService;
 
     @PostMapping
-    public ResponseEntity<CustomerSessionCreateResponse> createAnonymous() {
+    public ResponseEntity<ApiResponse<CustomerSessionCreateResponse>> createAnonymous() {
         CustomerSessionCreateResponse response = customerSessionService.createAnonymous();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @PatchMapping("/{customerSessionId}/end")
-    public ResponseEntity<CustomerSessionEndResponse> end(
+    public ResponseEntity<ApiResponse<CustomerSessionEndResponse>> end(
             @PathVariable Long customerSessionId
     ) {
-        return ResponseEntity.ok(customerSessionService.end(customerSessionId));
+        return ResponseEntity.ok(ApiResponse.success(customerSessionService.end(customerSessionId)));
     }
 }

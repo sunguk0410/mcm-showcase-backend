@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.testapi.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import likelion.mcmshowcase.testapi.dto.LatestAvatarImageResponse;
 import likelion.mcmshowcase.testapi.service.TestAvatarImageService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class TestAvatarImageController {
     private final TestAvatarImageService testAvatarImageService;
 
     @GetMapping("/latest")
-    public ResponseEntity<LatestAvatarImageResponse> getLatestAvatarImage() {
-        return ResponseEntity.ok(testAvatarImageService.getLatestAvatarImage());
+    public ResponseEntity<ApiResponse<LatestAvatarImageResponse>> getLatestAvatarImage() {
+        return ResponseEntity.ok(ApiResponse.success(testAvatarImageService.getLatestAvatarImage()));
     }
 }

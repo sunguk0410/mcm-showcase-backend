@@ -15,6 +15,7 @@ import likelion.mcmshowcase.ar.dto.ArMessageEvaluateResponse;
 import likelion.mcmshowcase.ar.dto.LatestActiveArSessionResponse;
 import likelion.mcmshowcase.ar.service.ArMessageService;
 import likelion.mcmshowcase.ar.service.ArSessionService;
+import likelion.mcmshowcase.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,8 +39,8 @@ public class ArSessionController {
     private final ArMessageService arMessageService;
 
     @GetMapping("/active/latest")
-    public ResponseEntity<LatestActiveArSessionResponse> getLatestActiveUnlinkedSession() {
-        return ResponseEntity.ok(arSessionService.getLatestActiveUnlinkedSession());
+    public ResponseEntity<ApiResponse<LatestActiveArSessionResponse>> getLatestActiveUnlinkedSession() {
+        return ResponseEntity.ok(ApiResponse.success(arSessionService.getLatestActiveUnlinkedSession()));
     }
 
     @Operation(
@@ -52,59 +53,59 @@ public class ArSessionController {
                     """
     )
     @PostMapping("/{arSessionId}/messages/evaluate")
-    public ResponseEntity<ArMessageEvaluateResponse> evaluateMessage(
+    public ResponseEntity<ApiResponse<ArMessageEvaluateResponse>> evaluateMessage(
             @PathVariable Long arSessionId,
             Locale locale
     ) {
-        return ResponseEntity.ok(arMessageService.evaluate(arSessionId, locale));
+        return ResponseEntity.ok(ApiResponse.success(arMessageService.evaluate(arSessionId, locale)));
     }
 
     @GetMapping("/{arSessionId}")
-    public ResponseEntity<ArSessionMemberStatusResponse> getMemberStatus(
+    public ResponseEntity<ApiResponse<ArSessionMemberStatusResponse>> getMemberStatus(
             @PathVariable Long arSessionId
     ) {
-        return ResponseEntity.ok(arSessionService.getMemberStatus(arSessionId));
+        return ResponseEntity.ok(ApiResponse.success(arSessionService.getMemberStatus(arSessionId)));
     }
 
     @GetMapping("/{arSessionId}/product-select-history")
-    public ResponseEntity<ProductSelectHistoryResponse> getProductSelectHistory(
+    public ResponseEntity<ApiResponse<ProductSelectHistoryResponse>> getProductSelectHistory(
             @PathVariable Long arSessionId
     ) {
-        return ResponseEntity.ok(arSessionService.getProductSelectHistory(arSessionId));
+        return ResponseEntity.ok(ApiResponse.success(arSessionService.getProductSelectHistory(arSessionId)));
     }
 
     @PostMapping
-    public ResponseEntity<ArSessionCreateResponse> create() {
+    public ResponseEntity<ApiResponse<ArSessionCreateResponse>> create() {
         ArSessionCreateResponse response = arSessionService.create();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @PatchMapping("/{arSessionId}/end")
-    public ResponseEntity<ArSessionEndResponse> end(@PathVariable Long arSessionId) {
-        return ResponseEntity.ok(arSessionService.end(arSessionId));
+    public ResponseEntity<ApiResponse<ArSessionEndResponse>> end(@PathVariable Long arSessionId) {
+        return ResponseEntity.ok(ApiResponse.success(arSessionService.end(arSessionId)));
     }
 
     @PatchMapping("/{arSessionId}/customer-session")
-    public ResponseEntity<ArSessionCustomerSessionResponse> mapCustomerSession(
+    public ResponseEntity<ApiResponse<ArSessionCustomerSessionResponse>> mapCustomerSession(
             @PathVariable Long arSessionId,
             @Valid @RequestBody ArSessionCustomerSessionRequest request
     ) {
-        return ResponseEntity.ok(arSessionService.mapCustomerSession(arSessionId, request));
+        return ResponseEntity.ok(ApiResponse.success(arSessionService.mapCustomerSession(arSessionId, request)));
     }
 
     @PatchMapping("/{arSessionId}/gender")
-    public ResponseEntity<ArSessionGenderResponse> setGender(
+    public ResponseEntity<ApiResponse<ArSessionGenderResponse>> setGender(
             @PathVariable Long arSessionId,
             @Valid @RequestBody ArSessionGenderRequest request
     ) {
-        return ResponseEntity.ok(arSessionService.setGender(arSessionId, request));
+        return ResponseEntity.ok(ApiResponse.success(arSessionService.setGender(arSessionId, request)));
     }
 
     @PatchMapping("/{arSessionId}/member")
-    public ResponseEntity<ArSessionMemberResponse> mapMember(
+    public ResponseEntity<ApiResponse<ArSessionMemberResponse>> mapMember(
             @PathVariable Long arSessionId,
             @Valid @RequestBody ArSessionMemberRequest request
     ) {
-        return ResponseEntity.ok(arSessionService.mapMember(arSessionId, request));
+        return ResponseEntity.ok(ApiResponse.success(arSessionService.mapMember(arSessionId, request)));
     }
 }

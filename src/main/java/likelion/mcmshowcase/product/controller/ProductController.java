@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.product.controller;
 
+import likelion.mcmshowcase.global.response.ApiResponse;
 import likelion.mcmshowcase.product.dto.ProductDetailResponse;
 import likelion.mcmshowcase.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable Long productId) {
-        return ResponseEntity.ok(productService.getProductDetail(productId));
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductDetail(@PathVariable Long productId) {
+        return ResponseEntity.ok(ApiResponse.success(productService.getProductDetail(productId)));
     }
 }
