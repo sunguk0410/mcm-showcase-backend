@@ -89,9 +89,10 @@ public class FluxClient {
     ) {
         validateConfiguration();
         log.info(
-                "Submitting FLUX request. endpoint={}, imageCount={}, images={}",
+                "Submitting FLUX request. endpoint={}, imageCount={}, baseAvatarUrl={}, productImageUrls={}",
                 modelPath,
                 referenceProducts.size() + 1,
+                baseAvatarUrl,
                 referenceProducts.stream().map(AvatarReferenceProduct::imageUrl).toList()
         );
         try {
