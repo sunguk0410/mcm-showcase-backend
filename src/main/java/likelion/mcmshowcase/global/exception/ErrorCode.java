@@ -63,7 +63,8 @@ public enum ErrorCode {
     FLUX_API_KEY_NOT_CONFIGURED("AVATAR_012", "아바타 생성 서버 설정이 올바르지 않습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     FLUX_INVALID_RESPONSE("AVATAR_013", "아바타 생성 서버가 올바르지 않은 응답을 반환했습니다.", HttpStatus.BAD_GATEWAY),
     FLUX_SERVER_UNAVAILABLE("AVATAR_014", "아바타 생성 서버를 사용할 수 없습니다.", HttpStatus.BAD_GATEWAY),
-    AVATAR_IMAGE_NOT_FOUND("AVATAR_015", "아바타 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    AVATAR_IMAGE_NOT_FOUND("AVATAR_015", "아바타 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    FLUX_CREDIT_LOW("AVATAR_016", "FLUX API 크레딧 잔액이 부족하여 요청이 제한되었습니다.", HttpStatus.TOO_MANY_REQUESTS);
 
     private final String code;
     private final String message;

@@ -115,7 +115,7 @@ public class FluxClient {
                     exception.getResponseBodyAsString(),
                     exception
             );
-            throw unavailable("FLUX API request failed");
+            throw mapApiError(exception, "FLUX API request failed");
         } catch (ResourceAccessException exception) {
             log.error("FLUX submit connection failed or timed out.", exception);
             throw unavailable("FLUX API connection failed or timed out");
@@ -170,7 +170,7 @@ public class FluxClient {
                         exception.getResponseBodyAsString(),
                         exception
                 );
-                throw unavailable("FLUX API polling failed");
+                throw mapApiError(exception, "FLUX API polling failed");
             } catch (ResourceAccessException exception) {
                 log.error("FLUX polling connection failed or timed out. url={}", pollingUrl, exception);
                 throw unavailable("FLUX API polling failed or timed out");
@@ -306,6 +306,15 @@ public class FluxClient {
 
     private CustomException invalidResponse() {
         return new CustomException(ErrorCode.FLUX_INVALID_RESPONSE);
+    }
+
+    static CustomException mapApiError(RestClientResponseException exception, String message) {
+        if (exception.getStatusCode().value() == 429
+                && exception.getResponseBodyAsString().toLowerCase(Locale.ROOT)
+                        .contains("credit balance is low")) {
+            return new CustomException(ErrorCode.FLUX_CREDIT_LOW);
+        }
+        return new CustomException(ErrorCode.FLUX_SERVER_UNAVAILABLE, message);
     }
 
     private CustomException unavailable(String message) {
