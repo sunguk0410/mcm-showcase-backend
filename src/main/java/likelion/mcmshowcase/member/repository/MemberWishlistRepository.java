@@ -4,6 +4,7 @@ import likelion.mcmshowcase.member.entity.Member;
 import likelion.mcmshowcase.member.entity.MemberWishlist;
 import likelion.mcmshowcase.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 import java.util.Optional;
 import java.util.List;
@@ -14,4 +15,7 @@ public interface MemberWishlistRepository extends JpaRepository<MemberWishlist, 
     Optional<MemberWishlist> findByMemberAndProduct(Member member, Product product);
 
     List<MemberWishlist> findByMemberOrderByCreatedAtAsc(Member member);
+
+    @EntityGraph(attributePaths = "product")
+    List<MemberWishlist> findByMemberOrderByCreatedAtDescIdDesc(Member member);
 }
