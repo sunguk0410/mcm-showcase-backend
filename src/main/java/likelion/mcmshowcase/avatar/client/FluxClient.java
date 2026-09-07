@@ -1,5 +1,7 @@
 package likelion.mcmshowcase.avatar.client;
 
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.resilience.annotation.Retryable;
 import likelion.mcmshowcase.global.exception.CustomException;
 import likelion.mcmshowcase.global.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -126,6 +128,10 @@ public class FluxClient {
         }
     }
 
+    @Retryable(
+            includes = {ResourceAccessException.class, HttpServerErrorException.BadGateway.class,
+                    HttpServerErrorException.ServiceUnavailable.class, HttpServerErrorException.GatewayTimeout.class},
+            maxRetries = 2, delay = 500, multiplier = 2)
     public byte[] downloadGeneratedImage(String imageUrl) {
         try {
             byte[] image = imageDownloadClient.get()
@@ -143,13 +149,13 @@ public class FluxClient {
                     exception.getResponseBodyAsString(),
                     exception
             );
-            throw unavailable("FLUX image download failed");
+            throw new CustomException(ErrorCode.FLUX_SERVER_UNAVAILABLE, "FLUX image download failed", exception);
         } catch (ResourceAccessException exception) {
             log.error("FLUX result image download failed or timed out. url={}", imageUrl, exception);
-            throw unavailable("FLUX image download failed or timed out");
+            throw new CustomException(ErrorCode.FLUX_SERVER_UNAVAILABLE, "FLUX image download failed or timed out", exception);
         } catch (RestClientException exception) {
             log.error("FLUX result image download failed. url={}", imageUrl, exception);
-            throw unavailable("FLUX image download failed");
+            throw new CustomException(ErrorCode.FLUX_SERVER_UNAVAILABLE, "FLUX image download failed", exception);
         }
     }
 

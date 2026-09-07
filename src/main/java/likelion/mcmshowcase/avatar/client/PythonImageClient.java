@@ -1,5 +1,8 @@
 package likelion.mcmshowcase.avatar.client;
 
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.resilience.annotation.Retryable;
 import likelion.mcmshowcase.global.exception.CustomException;
 import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.avatar.dto.BackgroundRemovalRequest;
@@ -35,6 +38,10 @@ public class PythonImageClient {
         this.baseUri = URI.create(baseUrl);
     }
 
+    @Retryable(
+            includes = {ResourceAccessException.class, HttpServerErrorException.BadGateway.class,
+                    HttpServerErrorException.ServiceUnavailable.class, HttpServerErrorException.GatewayTimeout.class},
+            maxRetries = 2, delay = 500, multiplier = 2)
     public String removeBackground(String imageUrl) {
         try {
             BackgroundRemovalResponse response = restClient.post()
@@ -51,7 +58,7 @@ public class PythonImageClient {
         } catch (RestClientException exception) {
             throw new CustomException(
                     ErrorCode.BACKGROUND_REMOVAL_SERVER_UNAVAILABLE,
-                    exception.getClass().getSimpleName() + ": " + exception.getMessage());
+                    exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
         }
     }
 

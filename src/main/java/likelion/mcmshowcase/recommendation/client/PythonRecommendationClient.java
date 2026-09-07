@@ -1,5 +1,6 @@
 package likelion.mcmshowcase.recommendation.client;
 
+import org.springframework.resilience.annotation.Retryable;
 import likelion.mcmshowcase.global.exception.CustomException;
 import likelion.mcmshowcase.global.exception.ErrorCode;
 import likelion.mcmshowcase.recommendation.dto.PythonInitialPreferenceRequest;
@@ -53,6 +54,10 @@ public class PythonRecommendationClient {
                 .build();
     }
 
+    @Retryable(
+            includes = {ResourceAccessException.class, HttpServerErrorException.BadGateway.class,
+                    HttpServerErrorException.ServiceUnavailable.class, HttpServerErrorException.GatewayTimeout.class},
+            maxRetries = 2, delay = 500, multiplier = 2)
     public PythonRecommendationResponse recommend(PythonRecommendationRequest request) {
         try {
             PythonRecommendationResponse response = restClient.post()
@@ -79,6 +84,10 @@ public class PythonRecommendationClient {
         }
     }
 
+    @Retryable(
+            includes = {ResourceAccessException.class, HttpServerErrorException.BadGateway.class,
+                    HttpServerErrorException.ServiceUnavailable.class, HttpServerErrorException.GatewayTimeout.class},
+            maxRetries = 2, delay = 500, multiplier = 2)
     public void initializePreferences(PythonInitialPreferenceRequest request) {
         try {
             restClient.post()
@@ -95,6 +104,10 @@ public class PythonRecommendationClient {
         }
     }
 
+    @Retryable(
+            includes = {ResourceAccessException.class, HttpServerErrorException.BadGateway.class,
+                    HttpServerErrorException.ServiceUnavailable.class, HttpServerErrorException.GatewayTimeout.class},
+            maxRetries = 2, delay = 500, multiplier = 2)
     public PythonAvatarLookResponse createAvatarLook(PythonAvatarLookRequest request) {
         try {
             PythonAvatarLookResponse response = avatarRestClient.post()
@@ -129,6 +142,6 @@ public class PythonRecommendationClient {
     private CustomException unavailable(Exception cause) {
         return new CustomException(
                 ErrorCode.RECOMMENDATION_SERVER_UNAVAILABLE,
-                cause.getClass().getSimpleName() + ": " + cause.getMessage());
+                cause.getClass().getSimpleName() + ": " + cause.getMessage(), cause);
     }
 }
