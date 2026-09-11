@@ -24,8 +24,9 @@ public class ProductController {
     public ResponseEntity<ApiResponse<List<ProductDetailResponse>>> getProducts(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Gender gender,
-            @RequestParam(required = false) String zone) {
-        return ResponseEntity.ok(ApiResponse.success(productService.getProducts(category, gender, zone)));
+            @RequestParam(required = false) String zone,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(ApiResponse.success(productService.getProducts(category, gender, zone, keyword)));
     }
 
     @GetMapping("/{productId}")
