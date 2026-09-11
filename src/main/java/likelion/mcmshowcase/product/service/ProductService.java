@@ -18,8 +18,8 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
-    public List<ProductDetailResponse> getProducts(String category, Gender gender) {
-        return productRepository.findByFilters(category, gender == null ? null : gender.name())
+    public List<ProductDetailResponse> getProducts(String category, Gender gender, String zone) {
+        return productRepository.findByFilters(category, gender == null ? null : gender.name(), zone)
                 .stream()
                 .map(this::toResponse)
                 .toList();

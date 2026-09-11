@@ -11,7 +11,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             select p from Product p
             where (:category is null or p.category.code = :category)
               and (:gender is null or p.gender = :gender or p.gender = 'UNISEX')
+              and (:zone is null or p.zone = :zone)
             order by p.id asc
             """)
-    List<Product> findByFilters(@Param("category") String category, @Param("gender") String gender);
+    List<Product> findByFilters(@Param("category") String category, @Param("gender") String gender, @Param("zone") String zone);
 }
