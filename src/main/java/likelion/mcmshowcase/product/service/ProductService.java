@@ -42,7 +42,8 @@ public class ProductService {
                 product.getNameEn(),
                 product.getPrice(),
                 product.getColor(),
-                product.getImageUrl()
+                product.getImageUrl(),
+                product.getProductUrl()
         );
     }
 }
